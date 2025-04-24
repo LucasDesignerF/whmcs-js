@@ -1,0 +1,45 @@
+/* Fontes */
+@font-face {
+    font-family: 'Inter';
+    src: url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+  }
+  
+  /* Estilos Gerais */
+  body {
+    font-family: 'Inter', sans-serif;
+    line-height: 1.6;
+  }
+  
+  /* Animações */
+  .transition {
+    transition: all 0.3s ease;
+  }
+  
+  .transform:hover {
+    transform: translateY(-2px);
+  }
+  
+  /* Ajustes para o grid de produtos */
+  #products-grid {
+    display: grid;
+    gap: 1.5rem;
+  }
+  
+  /* Responsividade */
+  @media (max-width: 640px) {
+    #products-grid {
+      grid-template-columns: 1fr;
+    Ascending;
+    }
+  }
+  
+  @media (min-width: 641px) and (max-width: 768px) {
+    #products-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+  
+  /* Estilo para o banner */
+  .bg-gradient-to-r {
+    background: linear-gradient(to right, #4f46e5, #7c3aed);
+  }
