@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Blade Store - Painel do Cliente</title>
+  <meta name="description" content="Painel do cliente da Blade Store para gerenciar pedidos, faturas e pagamentos.">
+  <meta name="keywords" content="cliente, Blade Store, marketplace digital, pedidos, faturas, pagamentos">
+  <meta name="author" content="Blade Store">
+  <meta name="robots" content="noindex, nofollow">
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="/src/img/fav-icon.png" sizes="32x32">
+  <link rel="apple-touch-icon" href="/src/img/fav-icon.png">
+  <meta name="msapplication-TileImage" content="/src/img/fav-icon.png">
+
+  <!-- Canonical URL -->
+  <link rel="canonical" href="https://whmcs-js.pages.dev/client_dashboard.html">
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="Blade Store - Painel do Cliente">
+  <meta property="og:description" content="Gerencie seus pedidos, faturas e pagamentos na Blade Store.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://whmcs-js.pages.dev/client_dashboard.html">
+  <meta property="og:image" content="https://placehold.co/1200x628">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="628">
+  <meta property="og:locale" content="pt_BR">
+  <meta property="og:site_name" content="Blade Store">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Blade Store - Painel do Cliente">
+  <meta name="twitter:description" content="Gerencie seus pedidos, faturas e pagamentos na Blade Store.">
+  <meta name="twitter:image" content="https://placehold.co/1200x628">
+  <meta name="twitter:site" content="@WHMCSStore">
+  <meta name="twitter:creator" content="@WHMCSStore">
+
+  <!-- Structured Data (JSON-LD) -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "name": "Blade Store - Client Dashboard",
+    "url": "https://whmcs-js.pages.dev/client_dashboard.html",
+    "description": "Painel do cliente para gerenciamento de pedidos, faturas e pagamentos na Blade Store.",
+    "publisher": {
+      "@type": "Organization",
+      "name": "Blade Store",
+      "logo": {
+        "@type": "ImageObject",
+        "url": "/src/img/fav-icon.png"
+      }
+    }
+  }
+  </script>
+
+  <!-- Hreflang -->
+  <link rel="alternate" hreflang="pt-BR" href="https://whmcs-js.pages.dev/client_dashboard.html">
+  <link rel="alternate" hreflang="x-default" href="https://whmcs-js.pages.dev/client_dashboard.html">
+
+  <!-- Performance -->
+  <link rel="preload" href="/src/img/fav-icon.png" as="image">
+  <link rel="preload" href="/src/img/logo.png" as="image">
+  <link rel="preload" href="/src/img/logo-footer.png" as="image">
+  <link rel="dns-prefetch" href="https://cdnjs.cloudflare.com">
+  <link rel="preconnect" href="https://placehold.co">
+
+  <!-- CSS e Fontes -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+
+  <!-- Estilos Integrados -->
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      line-height: 1.6;
+      background: linear-gradient(to bottom, #f3f4f6, #ffffff);
+    }
+    .transition {
+      transition: all 0.3s ease;
+    }
+    .transform:hover {
+      transform: translateY(-2px);
+    }
+    .resource-grid {
+      display: grid;
+      gap: 1.5rem;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    }
+    .resource-card {
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    .resource-card:hover {
+      transform: scale(1.05);
+      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+    }
+    .modal {
+      max-height: 80vh;
+      overflow-y: auto;
+      border-radius: 8px;
+    }
+    .btn {
+      border-radius: 9999px;
+      padding: 0.75rem 2rem;
+      font-size: 1rem;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    }
+    .btn:focus {
+      outline: none;
+      outline: 2px solid #3b82f6;
+      outline-offset: 2px;
+    }
+    .nav-link {
+      position: relative;
+      padding-bottom: 2px;
+      display: flex;
+      align-items: center;
+    }
+    .nav-link::after {
+      content: '';
+      position: absolute;
+      width: 0;
+      height: 2px;
+      bottom: 0;
+      left: 0;
+      background-color: #3b82f6;
+      transition: width 0.3s ease;
+    }
+    .nav-link:hover::after {
+      width: 100%;
+    }
+    .user-profile {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      position: relative;
+    }
+    .user-profile img {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 2px solid #3b82f6;
+    }
+    .user-profile span {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: #1a1a1a;
+      max-width: 100px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .user-profile .logout-btn {
+      background: none;
+      border: none;
+      color: #dc2626;
+      font-size: 1rem;
+      padding: 0.25rem;
+      cursor: pointer;
+      transition: color 0.3s ease;
+    }
+    .user-profile .logout-btn:hover {
+      color: #b91c1c;
+    }
+    .user-profile .dropdown {
+      position: absolute;
+      top: 100%;
+      right: 0;
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      display: none;
+      flex-direction: column;
+      min-width: 120px;
+      z-index: 10;
+    }
+    .user-profile:hover .dropdown {
+      display: flex;
+    }
+    .user-profile .dropdown button {
+      background: none;
+      border: none;
+      padding: 0.5rem 1rem;
+      text-align: left;
+      color: #1a1a1a;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+    .user-profile .dropdown button:hover {
+      background-color: #f3f4f6;
+    }
+    footer {
+      background-color: #1a1a1a;
+      color: #d1d5db;
+      border-top: 1px solid #2a2a2a;
+    }
+    footer h3 {
+      color: #3b82f6;
+      font-size: 1.25rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+    }
+    footer p, footer a {
+      color: #d1d5db;
+      font-size: 0.9rem;
+      line-height: 1.8;
+    }
+    footer a:hover {
+      color: #3b82f6;
+      transition: color 0.3s ease;
+    }
+    footer .social-icons a {
+      font-size: 1.5rem;
+      padding: 0.75rem;
+      border-radius: 50%;
+      transition: background-color 0.3s ease, transform 0.3s ease;
+    }
+    footer .social-icons a:hover {
+      background-color: #2a2a2a;
+      transform: scale(1.1);
+    }
+    footer .copyright {
+      font-size: 0.8rem;
+      color: #9ca3af;
+      border-top: 1px solid #2a2a2a;
+      padding-top: 1.5rem;
+      margin-top: 2rem;
+    }
+    .qr-code img {
+      max-width: 200px;
+      height: auto;
+      margin-top: 1rem;
+    }
+    @media (max-width: 640px) {
+      .resource-grid {
+        grid-template-columns: 1fr;
+      }
+      footer .grid {
+        grid-template-columns: 1fr;
+        text-align: center;
+        gap: 2rem;
+      }
+      footer .social-icons {
+        justify-content: center;
+        gap: 1rem;
+      }
+      .user-profile span {
+        max-width: 80px;
+      }
+    }
+  </style>
+</head>
+<body class="font-inter bg-gray-50 text-gray-900">
+  <!-- Cabeçalho -->
+  <header class="fixed top-0 left-0 w-full bg-white shadow-md z-50">
+    <nav class="container mx-auto px-4 py-4 flex items-center justify-between">
+      <!-- Logo -->
+      <div class="flex items-center">
+        <a href="/"><img src="/src/img/logo.png" alt="Blade Store Logo" class="logo-img"></a>
+      </div>
+      <!-- Links de Navegação -->
+      <div class="hidden md:flex items-center space-x-6">
+        <a href="#orders" class="nav-link text-gray-600 hover:text-blue-600 transition"><i class="fas fa-shopping-cart mr-1"></i> Pedidos</a>
+        <a href="#invoices" class="nav-link text-gray-600 hover:text-blue-600 transition"><i class="fas fa-file-invoice mr-1"></i> Faturas</a>
+        <a href="#payments" class="nav-link text-gray-600 hover:text-blue-600 transition"><i class="fas fa-money-bill mr-1"></i> Pagamentos</a>
+        <div id="auth-link" class="nav-link text-gray-600 hover:text-blue-600 transition">
+          <a href="#" class="flex items-center"><i class="fas fa-user mr-1"></i> Login</a>
+        </div>
+      </div>
+      <!-- Botão Mobile -->
+      <button class="md:hidden text-gray-600 focus:outline-none" id="mobile-menu-btn" aria-label="Abrir menu mobile">
+        <i class="fas fa-bars text-2xl"></i>
+      </button>
+    </nav>
+    <!-- Menu Mobile -->
+    <div id="mobile-menu" class="hidden md:hidden bg-white shadow-md">
+      <div class="container mx-auto px-4 py-4 space-y-4">
+        <a href="#orders" class="block text-gray-600 hover:text-blue-600"><i class="fas fa-shopping-cart mr-1"></i> Pedidos</a>
+        <a href="#invoices" class="block text-gray-600 hover:text-blue-600"><i class="fas fa-file-invoice mr-1"></i> Faturas</a>
+        <a href="#payments" class="block text-gray-600 hover:text-blue-600"><i class="fas fa-money-bill mr-1"></i> Pagamentos</a>
+        <div id="mobile-auth-link" class="block text-gray-600 hover:text-blue-600">
+          <a href="#" class="flex items-center"><i class="fas fa-user mr-1"></i> Login</a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <section class="pt-24 pb-16 bg-gradient-to-r from-blue-100 to-purple-100">
+    <div class="container mx-auto px-4">
+      <div class="text-center">
+        <h1 class="text-4xl md:text-5xl font-extrabold text-gray-900 mb-6 leading-tight">Painel do Cliente</h1>
+        <p class="text-lg md:text-xl text-gray-600 mb-8 leading-relaxed">Gerencie seus pedidos, faturas e pagamentos com facilidade.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Seção de Pedidos -->
+  <section id="orders" class="py-16 bg-white">
+    <div class="container mx-auto px-4">
+      <div class="flex justify-between items-center mb-8">
+        <h2 class="text-3xl font-extrabold text-gray-900">Meus Pedidos</h2>
+        <button id="create-order-btn" class="btn bg-blue-600 text-white hover:bg-blue-700"><i class="fas fa-plus mr-1"></i> Novo Pedido</button>
+      </div>
+      <div id="orders-grid" class="resource-grid"></div>
+    </div>
+  </section>
+
+  <!-- Seção de Faturas -->
+  <section id="invoices" class="py-16 bg-gray-50">
+    <div class="container mx-auto px-4">
+      <div class="flex justify-between items-center mb-8">
+        <h2 class="text-3xl font-extrabold text-gray-900">Minhas Faturas</h2>
+        <button id="create-invoice-btn" class="btn bg-blue-600 text-white hover:bg-blue-700"><i class="fas fa-plus mr-1"></i> Nova Fatura</button>
+      </div>
+      <div id="invoices-grid" class="resource-grid"></div>
+    </div>
+  </section>
+
+  <!-- Seção de Pagamentos -->
+  <section id="payments" class="py-16 bg-white">
+    <div class="container mx-auto px-4">
+      <div class="flex justify-between items-center mb-8">
+        <h2 class="text-3xl font-extrabold text-gray-900">Meus Pagamentos</h2>
+        <button id="create-payment-btn" class="btn bg-blue-600 text-white hover:bg-blue-700"><i class="fas fa-plus mr-1"></i> Novo Pagamento PIX</button>
+      </div>
+      <div id="payments-grid" class="resource-grid"></div>
+    </div>
+  </section>
+
+  <!-- Modal de Criação -->
+  <div id="resource-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50 modal">
+    <div class="bg-white rounded-lg p-6 w-full max-w-md">
+      <div class="flex justify-between items-center mb-4">
+        <h3 id="modal-title" class="text-xl font-semibold text-gray-900">Criar Recurso</h3>
+        <button id="close-modal" class="text-gray-600 hover:text-gray-900" aria-label="Fechar modal"><i class="fas fa-times"></i></button>
+      </div>
+      <form id="resource-form" class="space-y-4">
+        <!-- Campos dinâmicos serão adicionados aqui -->
+      </form>
+      <div class="flex justify-end space-x-4 mt-4">
+        <button id="submit-resource" class="btn bg-blue-600 text-white hover:bg-blue-700"><i class="fas fa-save mr-1"></i> Salvar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Rodapé -->
+  <footer class="py-12 footer">
+    <div class="container mx-auto px-4">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div>
+          <a href="/"><img src="/src/img/logo-footer.png" alt="Blade Store Logo" class="logo-img mb-4"></a>
+          <p>Painel do cliente para gerenciar pedidos, faturas e pagamentos na Blade Store.</p>
+        </div>
+        <div>
+          <h3 class="mb-4">Links Úteis</h3>
+          <ul class="space-y-2">
+            <li><a href="#" class="flex items-center"><i class="fas fa-question-circle mr-2"></i> Suporte</a></li>
+            <li><a href="#" class="flex items-center"><i class="fas fa-file-alt mr-2"></i> Termos de Uso</a></li>
+            <li><a href="#" class="flex items-center"><i class="fas fa-shield-alt mr-2"></i> Privacidade</a></li>
+          </ul>
+        </div>
+        <div>
+          <h3 class="mb-4">Comunidade</h3>
+          <div class="flex space-x-6 social-icons">
+            <a href="#" aria-label="Discord"><i class="fab fa-discord"></i></a>
+            <a href="#" aria-label="GitHub"><i class="fab fa-github"></i></a>
+          </div>
+        </div>
+      </div>
+      <div class="mt-8 text-center copyright">
+        © 2025 Blade Store. Todos os direitos reservados.
+      </div>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <script>
+    // Configuração da Base URL da API
+    const API_BASE_URL = 'https://redebots-v2.discloud.app';
+
+    // GSAP Animations
+    document.addEventListener('DOMContentLoaded', () => {
+      // Hero Section Animation
+      gsap.from('h1', { opacity: 0, y: 20, duration: 0.8, delay: 0.2 });
+      gsap.from('p', { opacity: 0, y: 20, duration: 0.8, delay: 0.4 });
+
+      // Resource Cards Animation
+      gsap.from('.resource-card', { 
+        opacity: 0, 
+        y: 20, 
+        duration: 0.8, 
+        stagger: 0.1, 
+        scrollTrigger: { trigger: '.resource-grid', start: 'top 80%' } 
+      });
+
+      // Footer Animation
+      gsap.from('.footer', { 
+        opacity: 0, 
+        y: 20, 
+        duration: 0.8, 
+        scrollTrigger: { trigger: '.footer', start: 'top 90%' } 
+      });
+
+      // Mobile Menu Animation
+      const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+      const mobileMenu = document.getElementById('mobile-menu');
+      mobileMenuBtn.addEventListener('click', () => {
+        if (mobileMenu.classList.contains('hidden')) {
+          mobileMenu.classList.remove('hidden');
+          gsap.fromTo(mobileMenu, 
+            { opacity: 0, y: -20 }, 
+            { opacity: 1, y: 0, duration: 0.5 }
+          );
+        } else {
+          gsap.to(mobileMenu, 
+            { opacity: 0, y: -20, duration: 0.5, 
+              onComplete: () => mobileMenu.classList.add('hidden') 
+            }
+          );
+        }
+      });
+
+      // Função para atualizar a UI de autenticação
+      const updateAuthUI = (user) => {
+        const authLink = document.getElementById('auth-link');
+        const mobileAuthLink = document.getElementById('mobile-auth-link');
+
+        if (user && user.role === 'user') {
+          // Desktop Navbar
+          authLink.innerHTML = `
+            <div class="user-profile">
+              <img src="${user.avatar || 'https://placehold.co/32x32'}" alt="${user.username}'s avatar" />
+              <span>${user.username}</span>
+              <div class="dropdown">
+                <button class="logout-btn">Sair</button>
+              </div>
+            </div>
+          `;
+          // Mobile Menu
+          mobileAuthLink.innerHTML = `
+            <div class="user-profile">
+              <img src="${user.avatar || 'https://placehold.co/32x32'}" alt="${user.username}'s avatar" />
+              <span>${user.username}</span>
+              <button class="logout-btn"><i class="fas fa-sign-out-alt"></i></button>
+            </div>
+          `;
+          // Logout
+          authLink.querySelector('.logout-btn').addEventListener('click', async () => {
+            try {
+              await fetch(`${API_BASE_URL}/auth/logout`, { credentials: 'include' });
+              localStorage.removeItem('user');
+              window.location.href = `${API_BASE_URL}/auth/discord`;
+            } catch (error) {
+              alert('Erro ao fazer logout');
+            }
+          });
+          mobileAuthLink.querySelector('.logout-btn').addEventListener('click', async () => {
+            try {
+              await fetch(`${API_BASE_URL}/auth/logout`, { credentials: 'include' });
+              localStorage.removeItem('user');
+              window.location.href = `${API_BASE_URL}/auth/discord`;
+            } catch (error) {
+              alert('Erro ao fazer logout');
+            }
+          });
+        } else {
+          // Redireciona para login
+          authLink.innerHTML = `<a href="${API_BASE_URL}/auth/discord" class="flex items-center"><i class="fas fa-user mr-1"></i> Login</a>`;
+          mobileAuthLink.innerHTML = `<a href="${API_BASE_URL}/auth/discord" class="flex items-center"><i class="fas fa-user mr-1"></i> Login</a>`;
+          window.location.href = `${API_BASE_URL}/auth/discord`;
+        }
+      };
+
+      // Verifica autenticação
+      let currentUser = null;
+      const checkAuth = async () => {
+        try {
+          const response = await fetch(`${API_BASE_URL}/auth/me`, { credentials: 'include' });
+          if (response.ok) {
+            const data = await response.json();
+            if (data.user.role !== 'user') {
+              window.location.href = `${API_BASE_URL}/auth/discord`;
+            } else {
+              currentUser = data.user;
+              localStorage.setItem('user', JSON.stringify(data.user));
+              updateAuthUI(data.user);
+              loadResources();
+            }
+          } else {
+            updateAuthUI(null);
+          }
+        } catch (error) {
+          updateAuthUI(null);
+        }
+      };
+
+      // Função para carregar recursos
+      const loadResources = async () => {
+        const sections = ['orders', 'invoices', 'payments'];
+        for (const section of sections) {
+          try {
+            const endpoint = section === 'payments' ? '/api/payments/pix' : `/api/${section}`;
+            const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+              headers: { 'x-api-key': localStorage.getItem('apiKey') || '' },
+              credentials: 'include'
+            });
+            const data = await response.json();
+            renderResources(section, data);
+          } catch (error) {
+            console.error(`Erro ao carregar ${section}:`, error);
+          }
+        }
+      };
+
+      // Função para renderizar recursos
+      const renderResources = (type, items) => {
+        const grid = document.getElementById(`${type}-grid`);
+        grid.innerHTML = '';
+        items.forEach(item => {
+          const card = document.createElement('div');
+          card.className = 'resource-card bg-white p-4 rounded-lg';
+          if (type === 'orders') {
+            card.innerHTML = `
+              <h3 class="text-lg font-semibold">Pedido #${item.id}</h3>
+              <p class="text-gray-600">Status: ${item.status}</p>
+              <p class="text-gray-600">Total: R$${item.total.toFixed(2)}</p>
+              <p class="text-gray-600">Itens: ${JSON.stringify(item.items).slice(0, 50)}...</p>
+            `;
+          } else if (type === 'invoices') {
+            card.innerHTML = `
+              <h3 class="text-lg font-semibold">Fatura #${item.id}</h3>
+              <p class="text-gray-600">Status: ${item.status}</p>
+              <p class="text-gray-600">Total: R$${item.total.toFixed(2)}</p>
+              <p class="text-gray-600">Criada em: ${new Date(item.createdAt).toLocaleDateString()}</p>
+            `;
+          } else if (type === 'payments') {
+            card.innerHTML = `
+              <h3 class="text-lg font-semibold">Pagamento #${item.id}</h3>
+              <p class="text-gray-600">Status: ${item.status}</p>
+              <p class="text-gray-600">Valor: R$${item.amount.toFixed(2)}</p>
+              <p class="text-gray-600">Fatura: #${item.invoiceId}</p>
+              <div class="qr-code">
+                <img src="${item.qrCode}" alt="QR Code PIX">
+              </div>
+              <p class="text-gray-600">Payload: ${item.payload.slice(0, 50)}...</p>
+            `;
+          }
+          grid.appendChild(card);
+        });
+      };
+
+      // Função para abrir modal de criação
+      const openResourceModal = async (type) => {
+        const modal = document.getElementById('resource-modal');
+        const form = document.getElementById('resource-form');
+        const title = document.getElementById('modal-title');
+        form.innerHTML = '';
+
+        const fields = {
+          orders: [
+            { name: 'items', label: 'Itens (JSON: [{productId, quantity}])', type: 'textarea', required: true },
+            { name: 'status', label: 'Status', type: 'select', options: ['pending', 'completed', 'canceled'], required: true }
+          ],
+          invoices: [
+            { name: 'orderId', label: 'ID do Pedido', type: 'number', required: true }
+          ],
+          payments: [
+            { name: 'invoiceId', label: 'ID da Fatura', type: 'number', required: true },
+            { name: 'amount', label: 'Valor (R$)', type: 'number', required: true },
+            { name: 'txid', label: 'TXID', type: 'text' }
+          ]
+        };
+
+        if (fields[type]) {
+          fields[type].forEach(field => {
+            const div = document.createElement('div');
+            div.innerHTML = `
+              <label class="block text-gray-600">${field.label}${field.required ? ' *' : ''}</label>
+              ${field.type === 'select' ? `
+                <select name="${field.name}" class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-600" ${field.required ? 'required' : ''}>
+                  ${field.options.map(opt => `<option value="${opt}">${opt}</option>`).join('')}
+                </select>
+              ` : field.type === 'textarea' ? `
+                <textarea name="${field.name}" class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-600" ${field.required ? 'required' : ''}></textarea>
+              ` : `
+                <input type="${field.type}" name="${field.name}" class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-600" ${field.required ? 'required' : ''}>
+              `}
+            `;
+            form.appendChild(div);
+          });
+        }
+
+        // Adiciona customerId automaticamente para pedidos
+        if (type === 'orders' && currentUser) {
+          const customerIdField = document.createElement('input');
+          customerIdField.type = 'hidden';
+          customerIdField.name = 'customerId';
+          customerIdField.value = currentUser.id;
+          form.appendChild(customerIdField);
+        }
+
+        title.textContent = `Criar ${type === 'orders' ? 'Pedido' : type === 'invoices' ? 'Fatura' : 'Pagamento PIX'}`;
+        modal.classList.remove('hidden');
+
+        document.getElementById('submit-resource').onclick = async () => {
+          const formData = new FormData(form);
+          const data = Object.fromEntries(formData);
+          try {
+            const endpoint = type === 'payments' ? '/api/payments/pix' : `/api/${type}`;
+            const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'x-api-key': localStorage.getItem('apiKey') || ''
+              },
+              credentials: 'include',
+              body: JSON.stringify(data)
+            });
+            if (response.ok) {
+              modal.classList.add('hidden');
+              loadResources();
+            } else {
+              const errorData = await response.json();
+              alert(`Erro: ${errorData.error || 'Não foi possível criar o recurso'}`);
+            }
+          } catch (error) {
+            alert('Erro ao criar recurso');
+          }
+        };
+      };
+
+      // Fechar modal
+      document.getElementById('close-modal').addEventListener('click', () => {
+        document.getElementById('resource-modal').classList.add('hidden');
+      });
+
+      // Botões para abrir modais de criação
+      document.getElementById('create-order-btn').addEventListener('click', () => openResourceModal('orders'));
+      document.getElementById('create-invoice-btn').addEventListener('click', () => openResourceModal('invoices'));
+      document.getElementById('create-payment-btn').addEventListener('click', () => openResourceModal('payments'));
+
+      // Inicializar
+      checkAuth();
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Blade Store - Painel Administrativo</title>
+  <meta name="description" content="Painel administrativo da Blade Store para gerenciar produtos digitais, pedidos, faturas e clientes.">
+  <meta name="keywords" content="admin, Blade Store, marketplace digital, gerenciamento, Discord">
+  <meta name="author" content="Blade Store">
+  <meta name="robots" content="noindex, nofollow">
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="/src/img/fav-icon.png" sizes="32x32">
+  <link rel="apple-touch-icon" href="/src/img/fav-icon.png">
+  <meta name="msapplication-TileImage" content="/src/img/fav-icon.png">
+
+  <!-- Canonical URL -->
+  <link rel="canonical" href="https://whmcs-js.pages.dev/admin">
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="Blade Store - Painel Administrativo">
+  <meta property="og:description" content="Gerencie produtos digitais, pedidos, faturas e clientes na Blade Store.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://whmcs-js.pages.dev/admin">
+  <meta property="og:image" content="https://placehold.co/1200x628">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="628">
+  <meta property="og:locale" content="pt_BR">
+  <meta property="og:site_name" content="Blade Store">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Blade Store - Painel Administrativo">
+  <meta name="twitter:description" content="Gerencie produtos digitais, pedidos, faturas e clientes na Blade Store.">
+  <meta name="twitter:image" content="https://placehold.co/1200x628">
+  <meta name="twitter:site" content="@WHMCSStore">
+  <meta name="twitter:creator" content="@WHMCSStore">
+
+  <!-- Structured Data (JSON-LD) -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "name": "Blade Store - Admin",
+    "url": "https://whmcs-js.pages.dev/admin",
+    "description": "Painel administrativo para gerenciamento de produtos digitais na Blade Store.",
+    "publisher": {
+      "@type": "Organization",
+      "name": "Blade Store",
+      "logo": {
+        "@type": "ImageObject",
+        "url": "/src/img/fav-icon.png"
+      }
+    }
+  }
+  </script>
+
+  <!-- Hreflang -->
+  <link rel="alternate" hreflang="pt-BR" href="https://whmcs-js.pages.dev/admin">
+  <link rel="alternate" hreflang="x-default" href="https://whmcs-js.pages.dev/admin">
+
+  <!-- Performance -->
+  <link rel="preload" href="/src/img/fav-icon.png" as="image">
+  <link rel="preload" href="/src/img/logo.png" as="image">
+  <link rel="preload" href="/src/img/logo-footer.png" as="image">
+  <link rel="dns-prefetch" href="https://cdnjs.cloudflare.com">
+  <link rel="preconnect" href="https://placehold.co">
+
+  <!-- CSS e Fontes -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+
+  <!-- Estilos Integrados -->
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      line-height: 1.6;
+      background: linear-gradient(to bottom, #f3f4f6, #ffffff);
+    }
+    .transition {
+      transition: all 0.3s ease;
+    }
+    .transform:hover {
+      transform: translateY(-2px);
+    }
+    .resource-grid {
+      display: grid;
+      gap: 1.5rem;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    }
+    .resource-card {
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    .resource-card:hover {
+      transform: scale(1.05);
+      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+    }
+    .modal {
+      max-height: 80vh;
+      overflow-y: auto;
+      border-radius: 8px;
+    }
+    .btn {
+      border-radius: 9999px;
+      padding: 0.75rem 2rem;
+      font-size: 1rem;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    }
+    .btn:focus {
+      outline: none;
+      outline: 2px solid #3b82f6;
+      outline-offset: 2px;
+    }
+    .nav-link {
+      position: relative;
+      padding-bottom: 2px;
+      display: flex;
+      align-items: center;
+    }
+    .nav-link::after {
+      content: '';
+      position: absolute;
+      width: 0;
+      height: 2px;
+      bottom: 0;
+      left: 0;
+      background-color: #3b82f6;
+      transition: width 0.3s ease;
+    }
+    .nav-link:hover::after {
+      width: 100%;
+    }
+    .user-profile {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      position: relative;
+    }
+    .user-profile img {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 2px solid #3b82f6;
+    }
+    .user-profile span {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: #1a1a1a;
+      max-width: 100px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .user-profile .logout-btn {
+      background: none;
+      border: none;
+      color: #dc2626;
+      font-size: 1rem;
+      padding: 0.25rem;
+      cursor: pointer;
+      transition: color 0.3s ease;
+    }
+    .user-profile .logout-btn:hover {
+      color: #b91c1c;
+    }
+    .user-profile .dropdown {
+      position: absolute;
+      top: 100%;
+      right: 0;
+      background: white;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      display: none;
+      flex-direction: column;
+      min-width: 120px;
+      z-index: 10;
+    }
+    .user-profile:hover .dropdown {
+      display: flex;
+    }
+    .user-profile .dropdown button {
+      background: none;
+      border: none;
+      padding: 0.5rem 1rem;
+      text-align: left;
+      color: #1a1a1a;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+    .user-profile .dropdown button:hover {
+      background-color: #f3f4f6;
+    }
+    footer {
+      background-color: #1a1a1a;
+      color: #d1d5db;
+      border-top: 1px solid #2a2a2a;
+    }
+    footer h3 {
+      color: #3b82f6;
+      font-size: 1.25rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+    }
+    footer p, footer a {
+      color: #d1d5db;
+      font-size: 0.9rem;
+      line-height: 1.8;
+    }
+    footer a:hover {
+      color: #3b82f6;
+      transition: color 0.3s ease;
+    }
+    footer .social-icons a {
+      font-size: 1.5rem;
+      padding: 0.75rem;
+      border-radius: 50%;
+      transition: background-color 0.3s ease, transform 0.3s ease;
+    }
+    footer .social-icons a:hover {
+      background-color: #2a2a2a;
+      transform: scale(1.1);
+    }
+    footer .copyright {
+      font-size: 0.8rem;
+      color: #9ca3af;
+      border-top: 1px solid #2a2a2a;
+      padding-top: 1.5rem;
+      margin-top: 2rem;
+    }
+    @media (max-width: 640px) {
+      .resource-grid {
+        grid-template-columns: 1fr;
+      }
+      footer .grid {
+        grid-template-columns: 1fr;
+        text-align: center;
+        gap: 2rem;
+      }
+      footer .social-icons {
+        justify-content: center;
+        gap: 1rem;
+      }
+      .user-profile span {
+        max-width: 80px;
+      }
+    }
+  </style>
+</head>
+<body class="font-inter bg-gray-50 text-gray-900">
+  <!-- Cabeçalho -->
+  <header class="fixed top-0 left-0 w-full bg-white shadow-md z-50">
+    <nav class="container mx-auto px-4 py-4 flex items-center justify-between">
+      <!-- Logo -->
+      <div class="flex items-center">
+        <a href="/"><img src="/src/img/logo.png" alt="Blade Store Logo" class="logo-img"></a>
+      </div>
+      <!-- Links de Navegação -->
+      <div class="hidden md:flex items-center space-x-6">
+        <a href="#categories" class="nav-link text-gray-600 hover:text-blue-600 transition"><i class="fas fa-list mr-1"></i> Categorias</a>
+        <a href="#products" class="nav-link text-gray-600 hover:text-blue-600 transition"><i class="fas fa-box mr-1"></i> Produtos</a>
+        <a href="#customers" class="nav-link text-gray-600 hover:text-blue-600 transition"><i class="fas fa-users mr-1"></i> Clientes</a>
+        <a href="#orders" class="nav-link text-gray-600 hover:text-blue-600 transition"><i class="fas fa-shopping-cart mr-1"></i> Pedidos</a>
+        <a href="#invoices" class="nav-link text-gray-600 hover:text-blue-600 transition"><i class="fas fa-file-invoice mr-1"></i> Faturas</a>
+        <a href="#payments" class="nav-link text-gray-600 hover:text-blue-600 transition"><i class="fas fa-money-bill mr-1"></i> Pagamentos</a>
+        <div id="auth-link" class="nav-link text-gray-600 hover:text-blue-600 transition">
+          <a href="#" class="flex items-center"><i class="fas fa-user mr-1"></i> Login</a>
+        </div>
+      </div>
+      <!-- Botão Mobile -->
+      <button class="md:hidden text-gray-600 focus:outline-none" id="mobile-menu-btn" aria-label="Abrir menu mobile">
+        <i class="fas fa-bars text-2xl"></i>
+      </button>
+    </nav>
+    <!-- Menu Mobile -->
+    <div id="mobile-menu" class="hidden md:hidden bg-white shadow-md">
+      <div class="container mx-auto px-4 py-4 space-y-4">
+        <a href="#categories" class="block text-gray-600 hover:text-blue-600"><i class="fas fa-list mr-1"></i> Categorias</a>
+        <a href="#products" class="block text-gray-600 hover:text-blue-600"><i class="fas fa-box mr-1"></i> Produtos</a>
+        <a href="#customers" class="block text-gray-600 hover:text-blue-600"><i class="fas fa-users mr-1"></i> Clientes</a>
+        <a href="#orders" class="block text-gray-600 hover:text-blue-600"><i class="fas fa-shopping-cart mr-1"></i> Pedidos</a>
+        <a href="#invoices" class="block text-gray-600 hover:text-blue-600"><i class="fas fa-file-invoice mr-1"></i> Faturas</a>
+        <a href="#payments" class="block text-gray-600 hover:text-blue-600"><i class="fas fa-money-bill mr-1"></i> Pagamentos</a>
+        <div id="mobile-auth-link" class="block text-gray-600 hover:text-blue-600">
+          <a href="#" class="flex items-center"><i class="fas fa-user mr-1"></i> Login</a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <section class="pt-24 pb-16 bg-gradient-to-r from-blue-100 to-purple-100">
+    <div class="container mx-auto px-4">
+      <div class="text-center">
+        <h1 class="text-4xl md:text-5xl font-extrabold text-gray-900 mb-6 leading-tight">Painel Administrativo</h1>
+        <p class="text-lg md:text-xl text-gray-600 mb-8 leading-relaxed">Gerencie categorias, produtos, clientes, pedidos, faturas e pagamentos com facilidade.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Seção de Categorias -->
+  <section id="categories" class="py-16 bg-white">
+    <div class="container mx-auto px-4">
+      <div class="flex justify-between items-center mb-8">
+        <h2 class="text-3xl font-extrabold text-gray-900">Gerenciar Categorias</h2>
+        <button id="create-category-btn" class="btn bg-blue-600 text-white hover:bg-blue-700"><i class="fas fa-plus mr-1"></i> Nova Categoria</button>
+      </div>
+      <div id="categories-grid" class="resource-grid"></div>
+    </div>
+  </section>
+
+  <!-- Seção de Produtos -->
+  <section id="products" class="py-16 bg-gray-50">
+    <div class="container mx-auto px-4">
+      <div class="flex justify-between items-center mb-8">
+        <h2 class="text-3xl font-extrabold text-gray-900">Gerenciar Produtos</h2>
+        <button id="create-product-btn" class="btn bg-blue-600 text-white hover:bg-blue-700"><i class="fas fa-plus mr-1"></i> Novo Produto</button>
+      </div>
+      <div id="products-grid" class="resource-grid"></div>
+    </div>
+  </section>
+
+  <!-- Seção de Clientes -->
+  <section id="customers" class="py-16 bg-white">
+    <div class="container mx-auto px-4">
+      <div class="flex justify-between items-center mb-8">
+        <h2 class="text-3xl font-extrabold text-gray-900">Gerenciar Clientes</h2>
+        <button id="create-customer-btn" class="btn bg-blue-600 text-white hover:bg-blue-700"><i class="fas fa-plus mr-1"></i> Novo Cliente</button>
+      </div>
+      <div id="customers-grid" class="resource-grid"></div>
+    </div>
+  </section>
+
+  <!-- Seção de Pedidos -->
+  <section id="orders" class="py-16 bg-gray-50">
+    <div class="container mx-auto px-4">
+      <div class="flex justify-between items-center mb-8">
+        <h2 class="text-3xl font-extrabold text-gray-900">Gerenciar Pedidos</h2>
+        <button id="create-order-btn" class="btn bg-blue-600 text-white hover:bg-blue-700"><i class="fas fa-plus mr-1"></i> Novo Pedido</button>
+      </div>
+      <div id="orders-grid" class="resource-grid"></div>
+    </div>
+  </section>
+
+  <!-- Seção de Faturas -->
+  <section id="invoices" class="py-16 bg-white">
+    <div class="container mx-auto px-4">
+      <div class="flex justify-between items-center mb-8">
+        <h2 class="text-3xl font-extrabold text-gray-900">Gerenciar Faturas</h2>
+        <button id="create-invoice-btn" class="btn bg-blue-600 text-white hover:bg-blue-700"><i class="fas fa-plus mr-1"></i> Nova Fatura</button>
+      </div>
+      <div id="invoices-grid" class="resource-grid"></div>
+    </div>
+  </section>
+
+  <!-- Seção de Pagamentos -->
+  <section id="payments" class="py-16 bg-gray-50">
+    <div class="container mx-auto px-4">
+      <div class="flex justify-between items-center mb-8">
+        <h2 class="text-3xl font-extrabold text-gray-900">Gerenciar Pagamentos</h2>
+      </div>
+      <div id="payments-grid" class="resource-grid"></div>
+    </div>
+  </section>
+
+  <!-- Modal de Criação/Edição -->
+  <div id="resource-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50 modal">
+    <div class="bg-white rounded-lg p-6 w-full max-w-md">
+      <div class="flex justify-between items-center mb-4">
+        <h3 id="modal-title" class="text-xl font-semibold text-gray-900">Gerenciar Recurso</h3>
+        <button id="close-modal" class="text-gray-600 hover:text-gray-900" aria-label="Fechar modal"><i class="fas fa-times"></i></button>
+      </div>
+      <form id="resource-form" class="space-y-4">
+        <!-- Campos dinâmicos serão adicionados aqui -->
+      </form>
+      <div class="flex justify-end space-x-4 mt-4">
+        <button id="submit-resource" class="btn bg-blue-600 text-white hover:bg-blue-700"><i class="fas fa-save mr-1"></i> Salvar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal de Confirmação de Exclusão -->
+  <div id="delete-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50 modal">
+    <div class="bg-white rounded-lg p-6 w-full max-w-md">
+      <div class="flex justify-between items-center mb-4">
+        <h3 class="text-xl font-semibold text-gray-900">Confirmar Exclusão</h3>
+        <button id="close-delete-modal" class="text-gray-600 hover:text-gray-900" aria-label="Fechar modal"><i class="fas fa-times"></i></button>
+      </div>
+      <p id="delete-message" class="text-gray-600 mb-4">Você tem certeza que deseja excluir este recurso?</p>
+      <div class="flex justify-end space-x-4">
+        <button id="confirm-delete" class="btn bg-red-600 text-white hover:bg-red-700"><i class="fas fa-trash mr-1"></i> Excluir</button>
+        <button id="cancel-delete" class="btn bg-gray-600 text-white hover:bg-gray-700"><i class="fas fa-times mr-1"></i> Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Rodapé -->
+  <footer class="py-12 footer">
+    <div class="container mx-auto px-4">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div>
+          <a href="/"><img src="/src/img/logo-footer.png" alt="Blade Store Logo" class="logo-img mb-4"></a>
+          <p>Painel administrativo para gerenciar a Blade Store.</p>
+        </div>
+        <div>
+          <h3 class="mb-4">Links Úteis</h3>
+          <ul class="space-y-2">
+            <li><a href="#" class="flex items-center"><i class="fas fa-question-circle mr-2"></i> Suporte</a></li>
+            <li><a href="#" class="flex items-center"><i class="fas fa-file-alt mr-2"></i> Termos de Uso</a></li>
+            <li><a href="#" class="flex items-center"><i class="fas fa-shield-alt mr-2"></i> Privacidade</a></li>
+          </ul>
+        </div>
+        <div>
+          <h3 class="mb-4">Comunidade</h3>
+          <div class="flex space-x-6 social-icons">
+            <a href="#" aria-label="Discord"><i class="fab fa-discord"></i></a>
+            <a href="#" aria-label="GitHub"><i class="fab fa-github"></i></a>
+          </div>
+        </div>
+      </div>
+      <div class="mt-8 text-center copyright">
+        © 2025 Blade Store. Todos os direitos reservados.
+      </div>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <script>
+    // Configuração da Base URL da API
+    const API_BASE_URL = 'https://redebots-v2.discloud.app';
+
+    // GSAP Animations
+    document.addEventListener('DOMContentLoaded', () => {
+      // Hero Section Animation
+      gsap.from('h1', { opacity: 0, y: 20, duration: 0.8, delay: 0.2 });
+      gsap.from('p', { opacity: 0, y: 20, duration: 0.8, delay: 0.4 });
+
+      // Resource Cards Animation
+      gsap.from('.resource-card', { 
+        opacity: 0, 
+        y: 20, 
+        duration: 0.8, 
+        stagger: 0.1, 
+        scrollTrigger: { trigger: '.resource-grid', start: 'top 80%' } 
+      });
+
+      // Footer Animation
+      gsap.from('.footer', { 
+        opacity: 0, 
+        y: 20, 
+        duration: 0.8, 
+        scrollTrigger: { trigger: '.footer', start: 'top 90%' } 
+      });
+
+      // Mobile Menu Animation
+      const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+      const mobileMenu = document.getElementById('mobile-menu');
+      mobileMenuBtn.addEventListener('click', () => {
+        if (mobileMenu.classList.contains('hidden')) {
+          mobileMenu.classList.remove('hidden');
+          gsap.fromTo(mobileMenu, 
+            { opacity: 0, y: -20 }, 
+            { opacity: 1, y: 0, duration: 0.5 }
+          );
+        } else {
+          gsap.to(mobileMenu, 
+            { opacity: 0, y: -20, duration: 0.5, 
+              onComplete: () => mobileMenu.classList.add('hidden') 
+            }
+          );
+        }
+      });
+
+      // Função para atualizar a UI de autenticação
+      const updateAuthUI = (user) => {
+        const authLink = document.getElementById('auth-link');
+        const mobileAuthLink = document.getElementById('mobile-auth-link');
+
+        if (user && user.role === 'admin') {
+          // Desktop Navbar
+          authLink.innerHTML = `
+            <div class="user-profile">
+              <img src="${user.avatar || 'https://placehold.co/32x32'}" alt="${user.username}'s avatar" />
+              <span>${user.username}</span>
+              <div class="dropdown">
+                <button class="logout-btn">Sair</button>
+              </div>
+            </div>
+          `;
+          // Mobile Menu
+          mobileAuthLink.innerHTML = `
+            <div class="user-profile">
+              <img src="${user.avatar || 'https://placehold.co/32x32'}" alt="${user.username}'s avatar" />
+              <span>${user.username}</span>
+              <button class="logout-btn"><i class="fas fa-sign-out-alt"></i></button>
+            </div>
+          `;
+          // Logout
+          authLink.querySelector('.logout-btn').addEventListener('click', async () => {
+            try {
+              await fetch(`${API_BASE_URL}/auth/logout`, { credentials: 'include' });
+              localStorage.removeItem('user');
+              window.location.href = `${API_BASE_URL}/auth/discord`;
+            } catch (error) {
+              alert('Erro ao fazer logout');
+            }
+          });
+          mobileAuthLink.querySelector('.logout-btn').addEventListener('click', async () => {
+            try {
+              await fetch(`${API_BASE_URL}/auth/logout`, { credentials: 'include' });
+              localStorage.removeItem('user');
+              window.location.href = `${API_BASE_URL}/auth/discord`;
+            } catch (error) {
+              alert('Erro ao fazer logout');
+            }
+          });
+        } else {
+          // Redireciona para login
+          authLink.innerHTML = `<a href="${API_BASE_URL}/auth/discord" class="flex items-center"><i class="fas fa-user mr-1"></i> Login</a>`;
+          mobileAuthLink.innerHTML = `<a href="${API_BASE_URL}/auth/discord" class="flex items-center"><i class="fas fa-user mr-1"></i> Login</a>`;
+          window.location.href = `${API_BASE_URL}/auth/discord`;
+        }
+      };
+
+      // Verifica autenticação
+      const checkAuth = async () => {
+        try {
+          const response = await fetch(`${API_BASE_URL}/auth/me`, { credentials: 'include' });
+          if (response.ok) {
+            const data = await response.json();
+            localStorage.setItem('user', JSON.stringify(data.user));
+            updateAuthUI(data.user);
+            loadResources();
+          } else {
+            updateAuthUI(null);
+          }
+        } catch (error) {
+          updateAuthUI(null);
+        }
+      };
+
+      // Função para carregar recursos
+      const loadResources = async () => {
+        const sections = ['categories', 'products', 'customers', 'orders', 'invoices', 'payments'];
+        for (const section of sections) {
+          try {
+            const response = await fetch(`${API_BASE_URL}/api/${section}`, {
+              headers: { 'x-api-key': localStorage.getItem('apiKey') || '' },
+              credentials: 'include'
+            });
+            const data = await response.json();
+            renderResources(section, section === 'invoices' || section === 'payments' ? data : data.data);
+          } catch (error) {
+            console.error(`Erro ao carregar ${section}:`, error);
+          }
+        }
+      };
+
+      // Função para renderizar recursos
+      const renderResources = (type, items) => {
+        const grid = document.getElementById(`${type}-grid`);
+        grid.innerHTML = '';
+        items.forEach(item => {
+          const card = document.createElement('div');
+          card.className = 'resource-card bg-white p-4 rounded-lg';
+          card.innerHTML = `
+            <h3 class="text-lg font-semibold">${item.name || item.id}</h3>
+            <p class="text-gray-600">${JSON.stringify(item).slice(0, 100)}...</p>
+            <div class="mt-4 flex space-x-2">
+              <button class="edit-btn btn bg-yellow-600 text-white hover:bg-yellow-700" data-type="${type}" data-id="${item.id}"><i class="fas fa-edit mr-1"></i> Editar</button>
+              <button class="delete-btn btn bg-red-600 text-white hover:bg-red-700" data-type="${type}" data-id="${item.id}"><i class="fas fa-trash mr-1"></i> Excluir</button>
+            </div>
+          `;
+          grid.appendChild(card);
+        });
+
+        // Adicionar eventos aos botões
+        grid.querySelectorAll('.edit-btn').forEach(btn => {
+          btn.addEventListener('click', () => openResourceModal(btn.dataset.type, btn.dataset.id));
+        });
+        grid.querySelectorAll('.delete-btn').forEach(btn => {
+          btn.addEventListener('click', () => openDeleteModal(btn.dataset.type, btn.dataset.id));
+        });
+      };
+
+      // Função para abrir modal de criação/edição
+      const openResourceModal = async (type, id = null) => {
+        const modal = document.getElementById('resource-modal');
+        const form = document.getElementById('resource-form');
+        const title = document.getElementById('modal-title');
+        form.innerHTML = '';
+
+        const fields = {
+          categories: [
+            { name: 'name', label: 'Nome', type: 'text', required: true },
+            { name: 'description', label: 'Descrição', type: 'text' }
+          ],
+          products: [
+            { name: 'name', label: 'Nome', type: 'text', required: true },
+            { name: 'price', label: 'Preço', type: 'number', required: true },
+            { name: 'categoryId', label: 'ID da Categoria', type: 'number', required: true },
+            { name: 'stock', label: 'Estoque', type: 'number', required: true }
+          ],
+          customers: [
+            { name: 'name', label: 'Nome', type: 'text', required: true },
+            { name: 'email', label: 'Email', type: 'email', required: true },
+            { name: 'phone', label: 'Telefone', type: 'text' }
+          ],
+          orders: [
+            { name: 'customerId', label: 'ID do Cliente', type: 'number', required: true },
+            { name: 'items', label: 'Itens (JSON)', type: 'textarea', required: true },
+            { name: 'status', label: 'Status', type: 'select', options: ['pending', 'completed', 'canceled'], required: true }
+          ],
+          invoices: [
+            { name: 'orderId', label: 'ID do Pedido', type: 'number', required: true }
+          ]
+        };
+
+        if (fields[type]) {
+          fields[type].forEach(field => {
+            const div = document.createElement('div');
+            div.innerHTML = `
+              <label class="block text-gray-600">${field.label}${field.required ? ' *' : ''}</label>
+              ${field.type === 'select' ? `
+                <select name="${field.name}" class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-600" ${field.required ? 'required' : ''}>
+                  ${field.options.map(opt => `<option value="${opt}">${opt}</option>`).join('')}
+                </select>
+              ` : field.type === 'textarea' ? `
+                <textarea name="${field.name}" class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-600" ${field.required ? 'required' : ''}></textarea>
+              ` : `
+                <input type="${field.type}" name="${field.name}" class="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-600" ${field.required ? 'required' : ''}>
+              `}
+            `;
+            form.appendChild(div);
+          });
+        }
+
+        title.textContent = id ? `Editar ${type}` : `Criar ${type}`;
+        modal.classList.remove('hidden');
+
+        if (id) {
+          try {
+            const response = await fetch(`${API_BASE_URL}/api/${type}/${id}`, {
+              headers: { 'x-api-key': localStorage.getItem('apiKey') || '' },
+              credentials: 'include'
+            });
+            const data = await response.json();
+            Object.keys(data).forEach(key => {
+              const input = form.querySelector(`[name="${key}"]`);
+              if (input) input.value = data[key];
+            });
+          } catch (error) {
+            alert('Erro ao carregar dados do recurso');
+          }
+        }
+
+        document.getElementById('submit-resource').onclick = async () => {
+          const formData = new FormData(form);
+          const data = Object.fromEntries(formData);
+          try {
+            const method = id ? 'PUT' : 'POST';
+            const url = id ? `${API_BASE_URL}/api/${type}/${id}` : `${API_BASE_URL}/api/${type}`;
+            const response = await fetch(url, {
+              method,
+              headers: {
+                'Content-Type': 'application/json',
+                'x-api-key': localStorage.getItem('apiKey') || ''
+              },
+              credentials: 'include',
+              body: JSON.stringify(data)
+            });
+            if (response.ok) {
+              modal.classList.add('hidden');
+              loadResources();
+            } else {
+              alert('Erro ao salvar recurso');
+            }
+          } catch (error) {
+            alert('Erro ao salvar recurso');
+          }
+        };
+      };
+
+      // Função para abrir modal de exclusão
+      const openDeleteModal = (type, id) => {
+        const modal = document.getElementById('delete-modal');
+        document.getElementById('delete-message').textContent = `Você tem certeza que deseja excluir este ${type} (ID: ${id})?`;
+        modal.classList.remove('hidden');
+
+        document.getElementById('confirm-delete').onclick = async () => {
+          try {
+            const response = await fetch(`${API_BASE_URL}/api/${type}/${id}`, {
+              method: 'DELETE',
+              headers: { 'x-api-key': localStorage.getItem('apiKey') || '' },
+              credentials: 'include'
+            });
+            if (response.ok) {
+              modal.classList.add('hidden');
+              loadResources();
+            } else {
+              alert('Erro ao excluir recurso');
+            }
+          } catch (error) {
+            alert('Erro ao excluir recurso');
+          }
+        };
+      };
+
+      // Fechar modais
+      document.getElementById('close-modal').addEventListener('click', () => {
+        document.getElementById('resource-modal').classList.add('hidden');
+      });
+      document.getElementById('close-delete-modal').addEventListener('click', () => {
+        document.getElementById('delete-modal').classList.add('hidden');
+      });
+      document.getElementById('cancel-delete').addEventListener('click', () => {
+        document.getElementById('delete-modal').classList.add('hidden');
+      });
+
+      // Botões para abrir modais de criação
+      ['category', 'product', 'customer', 'order', 'invoice'].forEach(type => {
+        document.getElementById(`create-${type}-btn`).addEventListener('click', () => openResourceModal(`${type}s`));
+      });
+
+      // Inicializar
+      checkAuth();
+    });
+  </script>
+</body>
+</html>

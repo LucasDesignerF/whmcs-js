@@ -139,12 +139,18 @@
       transition: transform 0.3s ease, box-shadow 0.3s ease;
       border-radius: 8px;
       box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
     }
     .product-card:hover, .category-card:hover {
       transform: scale(1.05);
       box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
     }
-    /* Estilo para centralizar a barra de pesquisa */
+    .product-card img, .category-card img {
+      width: 100%;
+      height: 150px;
+      object-fit: cover;
+      border-bottom: 1px solid #e5e7eb;
+    }
     .search-bar-container {
       flex-grow: 1;
       max-width: 600px;
@@ -158,7 +164,6 @@
     .search-bar-container input:focus {
       box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
     }
-    /* Estilo para a logo */
     .logo-img {
       height: 40px;
       width: auto;
@@ -167,7 +172,6 @@
     .logo-img:hover {
       transform: scale(1.1);
     }
-    /* Estilo para links do navbar */
     .nav-link {
       position: relative;
       padding-bottom: 2px;
@@ -187,14 +191,12 @@
     .nav-link:hover::after {
       width: 100%;
     }
-    /* Estilo para dropdown de categorias */
     .categories-dropdown {
       background: rgba(255, 255, 255, 0.95);
       backdrop-filter: blur(4px);
       border-radius: 8px;
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     }
-    /* Estilo para botões */
     .btn {
       border-radius: 9999px;
       padding: 0.75rem 2rem;
@@ -212,7 +214,6 @@
       outline: 2px solid #3b82f6;
       outline-offset: 2px;
     }
-    /* Estilo para perfil do usuário */
     .user-profile {
       display: flex;
       align-items: center;
@@ -275,7 +276,6 @@
     .user-profile .dropdown button:hover {
       background-color: #f3f4f6;
     }
-    /* Estilos para o rodapé */
     footer {
       background-color: #1a1a1a;
       color: #d1d5db;
@@ -504,6 +504,15 @@
 
   <!-- Scripts -->
   <script>
+    // Configuração da Base URL da API
+    const API_BASE_URL = 'https://redebots-v2.discloud.app';
+
+    // Estado do carrinho
+    let cart = JSON.parse(localStorage.getItem('cart')) || [];
+    let currentUser = null;
+    let currentPage = 1;
+    let hasMoreProducts = true;
+
     // GSAP Animations
     document.addEventListener('DOMContentLoaded', () => {
       // Hero Section Animation
@@ -555,16 +564,18 @@
         }
       });
 
-      // Mock Discord Login State (Replace with actual Discord auth logic)
+      // Função para atualizar a UI de autenticação
       const updateAuthUI = (user) => {
         const authLink = document.getElementById('auth-link');
         const mobileAuthLink = document.getElementById('mobile-auth-link');
+        const addProduct = document.getElementById('add-product');
+        const mobileAddProduct = document.getElementById('mobile-add-product');
 
         if (user) {
           // Desktop Navbar
           authLink.innerHTML = `
             <div class="user-profile">
-              <img src="${user.avatar}" alt="${user.username}'s avatar" />
+              <img src="${user.avatar || 'https://placehold.co/32x32'}" alt="${user.username}'s avatar" />
               <span>${user.username}</span>
               <div class="dropdown">
                 <button class="logout-btn">Sair</button>
@@ -574,53 +585,328 @@
           // Mobile Menu
           mobileAuthLink.innerHTML = `
             <div class="user-profile">
-              <img src="${user.avatar}" alt="${user.username}'s avatar" />
+              <img src="${user.avatar || 'https://placehold.co/32x32'}" alt="${user.username}'s avatar" />
               <span>${user.username}</span>
               <button class="logout-btn"><i class="fas fa-sign-out-alt"></i></button>
             </div>
           `;
-          // Add logout functionality
-          authLink.querySelector('.logout-btn').addEventListener('click', () => {
-            // Simulate logout (replace with actual logout logic)
-            localStorage.removeItem('user');
-            updateAuthUI(null);
+          // Mostrar botão de adicionar produto para admins
+          if (user.role === 'admin') {
+            addProduct.classList.remove('hidden');
+            mobileAddProduct.classList.remove('hidden');
+          }
+          // Logout
+          authLink.querySelector('.logout-btn').addEventListener('click', async () => {
+            try {
+              await fetch(`${API_BASE_URL}/auth/logout`, { credentials: 'include' });
+              localStorage.removeItem('user');
+              window.location.reload();
+            } catch (error) {
+              alert('Erro ao fazer logout');
+            }
           });
-          mobileAuthLink.querySelector('.logout-btn').addEventListener('click', () => {
-            localStorage.removeItem('user');
-            updateAuthUI(null);
+          mobileAuthLink.querySelector('.logout-btn').addEventListener('click', async () => {
+            try {
+              await fetch(`${API_BASE_URL}/auth/logout`, { credentials: 'include' });
+              localStorage.removeItem('user');
+              window.location.reload();
+            } catch (error) {
+              alert('Erro ao fazer logout');
+            }
           });
         } else {
-          // Reset to Login state
-          authLink.innerHTML = `<a href="#" class="flex items-center"><i class="fas fa-user mr-1"></i> Login</a>`;
-          mobileAuthLink.innerHTML = `<a href="#" class="flex items-center"><i class="fas fa-user mr-1"></i> Login</a>`;
-          // Re-attach login event listener (replace with actual login logic)
-          authLink.querySelector('a').addEventListener('click', (e) => {
-            e.preventDefault();
-            // Simulate login
-            const mockUser = {
-              username: 'User#1234',
-              avatar: 'https://cdn.discordapp.com/avatars/123456789/abcdef1234567890.gif'
-            };
-            localStorage.setItem('user', JSON.stringify(mockUser));
-            updateAuthUI(mockUser);
-          });
-          mobileAuthLink.querySelector('a').addEventListener('click', (e) => {
-            e.preventDefault();
-            const mockUser = {
-              username: 'User#1234',
-              avatar: 'https://cdn.discordapp.com/avatars/123456789/abcdef1234567890.gif'
-            };
-            localStorage.setItem('user', JSON.stringify(mockUser));
-            updateAuthUI(mockUser);
-          });
+          // Resetar para estado de login
+          authLink.innerHTML = `<a href="${API_BASE_URL}/auth/discord" class="flex items-center"><i class="fas fa-user mr-1"></i> Login</a>`;
+          mobileAuthLink.innerHTML = `<a href="${API_BASE_URL}/auth/discord" class="flex items-center"><i class="fas fa-user mr-1"></i> Login</a>`;
+          addProduct.classList.add('hidden');
+          mobileAddProduct.classList.add('hidden');
         }
       };
 
-      // Check login state on page load
-      const savedUser = JSON.parse(localStorage.getItem('user'));
-      updateAuthUI(savedUser);
+      // Verificar autenticação
+      const checkAuth = async () => {
+        try {
+          const response = await fetch(`${API_BASE_URL}/auth/me`, { credentials: 'include' });
+          if (response.ok) {
+            const data = await response.json();
+            currentUser = data.user;
+            localStorage.setItem('user', JSON.stringify(data.user));
+            updateAuthUI(data.user);
+          } else {
+            currentUser = null;
+            localStorage.removeItem('user');
+            updateAuthUI(null);
+          }
+        } catch (error) {
+          currentUser = null;
+          localStorage.removeItem('user');
+          updateAuthUI(null);
+        }
+      };
+
+      // Carregar categorias
+      const loadCategories = async () => {
+        try {
+          const response = await fetch(`${API_BASE_URL}/api/categories`);
+          const data = await response.json();
+          const categories = data.data;
+          const dropdown = document.getElementById('categories-dropdown');
+          const mobileDropdown = document.getElementById('mobile-categories-menu');
+          const categoryFilter = document.getElementById('category-filter');
+          const grid = document.getElementById('categories-grid');
+
+          // Preencher dropdown
+          dropdown.innerHTML = categories.map(cat => `
+            <a href="#products" class="text-gray-600 hover:text-blue-600" data-id="${cat.id}">${cat.name}</a>
+          `).join('');
+          // Preencher menu mobile
+          mobileDropdown.addEventListener('click', (e) => {
+            e.preventDefault();
+            alert('Selecione uma categoria no filtro de produtos.');
+          });
+          // Preencher filtro
+          categoryFilter.innerHTML = '<option value="">Todas as Categorias</option>' + 
+            categories.map(cat => `<option value="${cat.id}">${cat.name}</option>`).join('');
+          // Preencher grid de categorias
+          grid.innerHTML = categories.map(cat => `
+            <div class="category-card bg-white p-4 rounded-lg">
+              <img src="${cat.image || 'https://placehold.co/300x150'}" alt="${cat.name}">
+              <h3 class="text-lg font-semibold mt-2">${cat.name}</h3>
+              <p class="text-gray-600">${cat.description || 'Sem descrição'}</p>
+            </div>
+          `).join('');
+
+          // Adicionar evento de clique no dropdown
+          dropdown.querySelectorAll('a').forEach(link => {
+            link.addEventListener('click', () => {
+              categoryFilter.value = link.dataset.id;
+              currentPage = 1;
+              loadProducts();
+            });
+          });
+        } catch (error) {
+          console.error('Erro ao carregar categorias:', error);
+        }
+      };
+
+      // Carregar produtos
+      const loadProducts = async () => {
+        const categoryId = document.getElementById('category-filter').value;
+        const sort = document.getElementById('sort-filter').value;
+        const search = document.getElementById('search-bar').value || document.getElementById('mobile-search-bar').value;
+        const limit = 8;
+        document.getElementById('loading').classList.remove('hidden');
+        document.getElementById('products-grid').innerHTML = '';
+
+        try {
+          let url = `${API_BASE_URL}/api/products?page=${currentPage}&limit=${limit}`;
+          if (categoryId) url += `&categoryId=${categoryId}`;
+          if (search) url += `&search=${encodeURIComponent(search)}`;
+          if (sort) {
+            const [field, order] = sort.split('-');
+            url += `&sort=${field}&order=${order}`;
+          }
+          const response = await fetch(url);
+          const data = await response.json();
+          const products = data.data;
+          hasMoreProducts = data.pagination.pages > currentPage;
+
+          const grid = document.getElementById('products-grid');
+          grid.innerHTML = products.map(prod => `
+            <div class="product-card bg-white p-4 rounded-lg">
+              <img src="${prod.image || 'https://placehold.co/300x150'}" alt="${prod.name}">
+              <h3 class="text-lg font-semibold mt-2">${prod.name}</h3>
+              <p class="text-gray-600">R$ ${prod.price.toFixed(2)}</p>
+              <p class="text-gray-600">Estoque: ${prod.stock}</p>
+              <button class="btn bg-blue-600 text-white hover:bg-blue-700 mt-2 w-full add-to-cart" data-id="${prod.id}" data-name="${prod.name}" data-price="${prod.price}">
+                <i class="fas fa-cart-plus mr-1"></i> Adicionar ao Carrinho
+              </button>
+            </div>
+          `).join('');
+
+          document.getElementById('load-more').classList.toggle('hidden', !hasMoreProducts);
+          document.getElementById('loading').classList.add('hidden');
+
+          // Adicionar eventos aos botões de carrinho
+          document.querySelectorAll('.add-to-cart').forEach(btn => {
+            btn.addEventListener('click', () => addToCart({
+              id: btn.dataset.id,
+              name: btn.dataset.name,
+              price: parseFloat(btn.dataset.price),
+              quantity: 1
+            }));
+          });
+        } catch (error) {
+          console.error('Erro ao carregar produtos:', error);
+          document.getElementById('loading').classList.add('hidden');
+        }
+      };
+
+      // Adicionar ao carrinho
+      const addToCart = async (item) => {
+        if (!currentUser) {
+          const modal = document.getElementById('auth-modal');
+          document.getElementById('modal-message').textContent = 'Você precisa estar logado para adicionar itens ao carrinho.';
+          document.getElementById('modal-action').onclick = () => {
+            window.location.href = `${API_BASE_URL}/auth/discord`;
+          };
+          modal.classList.remove('hidden');
+          return;
+        }
+
+        const existingItem = cart.find(cartItem => cartItem.id === item.id);
+        if (existingItem) {
+          existingItem.quantity += 1;
+        } else {
+          cart.push(item);
+        }
+        localStorage.setItem('cart', JSON.stringify(cart));
+        updateCartUI();
+      };
+
+      // Atualizar UI do carrinho
+      const updateCartUI = () => {
+        const cartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
+        document.getElementById('cart-count').textContent = cartCount;
+        document.getElementById('mobile-cart-count').textContent = cartCount;
+
+        const cartItems = document.getElementById('cart-items');
+        cartItems.innerHTML = cart.map(item => `
+          <div class="flex justify-between items-center">
+            <div>
+              <p class="font-semibold">${item.name}</p>
+              <p class="text-gray-600">R$ ${item.price.toFixed(2)} x ${item.quantity}</p>
+            </div>
+            <button class="text-red-600 remove-from-cart" data-id="${item.id}"><i class="fas fa-trash"></i></button>
+          </div>
+        `).join('');
+
+        const total = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+        document.getElementById('cart-total').textContent = total.toFixed(2);
+
+        // Adicionar eventos de remoção
+        cartItems.querySelectorAll('.remove-from-cart').forEach(btn => {
+          btn.addEventListener('click', () => {
+            cart = cart.filter(item => item.id !== btn.dataset.id);
+            localStorage.setItem('cart', JSON.stringify(cart));
+            updateCartUI();
+          });
+        });
+      };
+
+      // Finalizar compra
+      const checkout = async () => {
+        if (!currentUser) {
+          const modal = document.getElementById('auth-modal');
+          document.getElementById('modal-message').textContent = 'Você precisa estar logado para finalizar a compra.';
+          document.getElementById('modal-action').onclick = () => {
+            window.location.href = `${API_BASE_URL}/auth/discord`;
+          };
+          modal.classList.remove('hidden');
+          return;
+        }
+
+        if (cart.length === 0) {
+          alert('Seu carrinho está vazio.');
+          return;
+        }
+
+        try {
+          const response = await fetch(`${API_BASE_URL}/api/orders`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'x-api-key': localStorage.getItem('apiKey') || ''
+            },
+            credentials: 'include',
+            body: JSON.stringify({
+              customerId: currentUser.id,
+              items: cart.map(item => ({ productId: item.id, quantity: item.quantity })),
+              status: 'pending'
+            })
+          });
+
+          if (response.ok) {
+            const order = await response.json();
+            cart = [];
+            localStorage.setItem('cart', JSON.stringify(cart));
+            updateCartUI();
+            document.getElementById('cart-modal').classList.add('hidden');
+            alert('Compra finalizada com sucesso! Verifique seus pedidos no painel do cliente.');
+            window.location.href = '/client_dashboard.html';
+          } else {
+            const error = await response.json();
+            alert(`Erro ao finalizar compra: ${error.error}`);
+          }
+        } catch (error) {
+          alert('Erro ao finalizar compra.');
+        }
+      };
+
+      // Eventos
+      document.getElementById('category-filter').addEventListener('change', () => {
+        currentPage = 1;
+        loadProducts();
+      });
+      document.getElementById('sort-filter').addEventListener('change', () => {
+        currentPage = 1;
+        loadProducts();
+      });
+      document.getElementById('search-bar').addEventListener('input', debounce(() => {
+        currentPage = 1;
+        loadProducts();
+      }, 500));
+      document.getElementById('mobile-search-bar').addEventListener('input', debounce(() => {
+        currentPage = 1;
+        loadProducts();
+      }, 500));
+      document.getElementById('load-more').addEventListener('click', () => {
+        currentPage++;
+        loadProducts();
+      });
+      document.getElementById('cart-link').addEventListener('click', (e) => {
+        e.preventDefault();
+        document.getElementById('cart-modal').classList.remove('hidden');
+      });
+      document.getElementById('mobile-cart-link').addEventListener('click', (e) => {
+        e.preventDefault();
+        document.getElementById('cart-modal').classList.remove('hidden');
+      });
+      document.getElementById('close-cart-modal').addEventListener('click', () => {
+        document.getElementById('cart-modal').classList.add('hidden');
+      });
+      document.getElementById('close-modal').addEventListener('click', () => {
+        document.getElementById('auth-modal').classList.add('hidden');
+      });
+      document.getElementById('checkout-btn').addEventListener('click', checkout);
+      document.getElementById('add-product').addEventListener('click', (e) => {
+        e.preventDefault();
+        window.location.href = '/admin_dashboard.html';
+      });
+      document.getElementById('mobile-add-product').addEventListener('click', (e) => {
+        e.preventDefault();
+        window.location.href = '/admin_dashboard.html';
+      });
+
+      // Função debounce
+      function debounce(func, wait) {
+        let timeout;
+        return function executedFunction(...args) {
+          const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+          };
+          clearTimeout(timeout);
+          timeout = setTimeout(later, wait);
+        };
+      }
+
+      // Inicializar
+      checkAuth();
+      loadCategories();
+      loadProducts();
+      updateCartUI();
     });
   </script>
-  <script src="/src/js/scripts.js"></script>
 </body>
 </html>
