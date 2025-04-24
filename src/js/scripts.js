@@ -120,13 +120,13 @@ async function handleDiscordCallback(code) {
       method: 'GET',
     });
     const data = await response.json();
-    if (data.token) {
+    if (data.token && data.redirect_url) {
       localStorage.setItem('access_token', data.token);
       modalMessage.textContent = 'Autenticação realizada com sucesso!';
       modalAction.innerHTML = '<i class="fas fa-check mr-1"></i> Continuar';
       modalAction.onclick = () => {
         modal.classList.add('hidden');
-        window.location.href = '/';
+        window.location.href = data.redirect_url;
       };
       modal.classList.remove('hidden');
       gsap.from(modal, { opacity: 0, y: -50, duration: 0.5 });
@@ -153,7 +153,7 @@ async function handleDiscordCallback(code) {
 function handleLogout() {
   localStorage.removeItem('access_token');
   document.getElementById('auth-modal').classList.add('hidden');
-  window.location.reload();
+  window.location.href = '/';
 }
 
 function handleAddProduct(e) {
