@@ -3,10 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>WHMCS Store - Marketplace Digital</title>
-  <meta name="description" content="Compre e venda produtos digitais com segurança na WHMCS Store. Autenticação via Discord e pagamento via Pix.">
-  <meta name="keywords" content="marketplace digital, produtos digitais, WHMCS Store, contas de jogos, gift cards, Pix, Discord">
-  <meta name="author" content="WHMCS Store">
+  <title>Blade Store - Marketplace Digital</title>
+  <meta name="description" content="Compre e venda produtos digitais com segurança na Blade Store. Autenticação via Discord e pagamento via Pix.">
+  <meta name="keywords" content="marketplace digital, produtos digitais, Blade Store, contas de jogos, gift cards, Pix, Discord">
+  <meta name="author" content="Blade Store">
   <meta name="robots" content="index, follow">
 
   <!-- Favicon -->
@@ -18,7 +18,7 @@
   <link rel="canonical" href="https://whmcs-js.pages.dev/">
 
   <!-- Open Graph -->
-  <meta property="og:title" content="WHMCS Store - Marketplace Digital">
+  <meta property="og:title" content="Blade Store - Marketplace Digital">
   <meta property="og:description" content="Compre e venda contas, gift cards e itens de jogos com segurança. Autenticação via Discord e pagamento via Pix.">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://whmcs-js.pages.dev/">
@@ -26,11 +26,11 @@
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="628">
   <meta property="og:locale" content="pt_BR">
-  <meta property="og:site_name" content="WHMCS Store">
+  <meta property="og:site_name" content="Blade Store">
 
   <!-- Twitter Card -->
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="WHMCS Store - Marketplace Digital">
+  <meta name="twitter:title" content="Blade Store - Marketplace Digital">
   <meta name="twitter:description" content="Compre e venda contas, gift cards e itens de jogos com segurança. Autenticação via Discord e pagamento via Pix.">
   <meta name="twitter:image" content="https://placehold.co/1200x628">
   <meta name="twitter:site" content="@WHMCSStore">
@@ -41,12 +41,12 @@
   {
     "@context": "https://schema.org",
     "@type": "WebSite",
-    "name": "WHMCS Store",
+    "name": "Blade Store",
     "url": "https://whmcs-js.pages.dev/",
     "description": "Marketplace digital para compra e venda de produtos digitais com autenticação via Discord e pagamento via Pix.",
     "publisher": {
       "@type": "Organization",
-      "name": "WHMCS Store",
+      "name": "Blade Store",
       "logo": {
         "@type": "ImageObject",
         "url": "/src/img/fav-icon.png"
@@ -63,7 +63,7 @@
   {
     "@context": "https://schema.org",
     "@type": "Organization",
-    "name": "WHMCS Store",
+    "name": "Blade Store",
     "url": "https://whmcs-js.pages.dev/",
     "logo": "/src/img/fav-icon.png",
     "sameAs": [
@@ -116,7 +116,7 @@
       }
     }
     .bg-gradient-to-r {
-      background: linear-gradient(to right, #4f46e5, #7c3aed);
+      background: linear-gradient(to right, #ececec, #cccccc);
     }
     .cart-modal {
       max-height: 80vh;
@@ -129,15 +129,28 @@
       transform: scale(1.05);
       box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
     }
+    /* Estilo para centralizar a barra de pesquisa */
+    .search-bar-container {
+      flex-grow: 1;
+      max-width: 600px;
+      margin: 0 1rem;
+    }
   </style>
 </head>
 <body class="font-inter bg-gray-50 text-gray-900">
   <!-- Cabeçalho -->
   <header class="fixed top-0 left-0 w-full bg-white shadow-md z-50">
     <nav class="container mx-auto px-4 py-4 flex items-center justify-between">
+      <!-- Logo -->
       <div class="flex items-center">
-        <div class="text-2xl font-extrabold text-blue-600">WHMCS Store</div>
+        <div class="text-2xl font-extrabold text-blue-600">Blade Store</div>
       </div>
+      <!-- Barra de Pesquisa -->
+      <div class="search-bar-container relative hidden md:block">
+        <input type="text" id="search-bar" placeholder="Buscar produtos..." class="bg-gray-100 text-gray-900 px-4 py-2 rounded-full w-full focus:outline-none focus:ring-2 focus:ring-blue-600" aria-label="Buscar produtos">
+        <i class="fas fa-search absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+      </div>
+      <!-- Categorias, Login, Carrinho, Adicionar Produto -->
       <div class="hidden md:flex items-center space-x-6">
         <div class="relative group">
           <a href="#" id="categories-menu" class="text-gray-600 hover:text-blue-600 transition flex items-center">
@@ -147,14 +160,11 @@
             <div id="categories-dropdown" class="grid grid-cols-1 gap-2"></div>
           </div>
         </div>
-        <div class="relative">
-          <input type="text" id="search-bar" placeholder="Buscar produtos..." class="bg-gray-100 text-gray-900 px-4 py-2 rounded-full w-64 focus:outline-none focus:ring-2 focus:ring-blue-600" aria-label="Buscar produtos">
-          <i class="fas fa-search absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
-        </div>
         <a href="#" id="auth-link" class="text-gray-600 hover:text-blue-600 transition"><i class="fas fa-user mr-1"></i> Login</a>
         <a href="#" id="cart-link" class="text-gray-600 hover:text-blue-600 transition"><i class="fas fa-shopping-cart mr-1"></i> Carrinho (<span id="cart-count">0</span>)</a>
         <a href="#" id="add-product" class="bg-blue-600 text-white px-4 py-2 rounded-full hover:bg-blue-700 transition hidden"><i class="fas fa-plus mr-1"></i> Adicionar Produto</a>
       </div>
+      <!-- Botão Mobile -->
       <button class="md:hidden text-gray-600 focus:outline-none" id="mobile-menu-btn" aria-label="Abrir menu mobile">
         <i class="fas fa-bars"></i>
       </button>
@@ -260,7 +270,7 @@
     <div class="container mx-auto px-4">
       <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
         <div>
-          <h3 class="text-xl font-semibold text-blue-600 mb-4">WHMCS Store</h3>
+          <h3 class="text-xl font-semibold text-blue-600 mb-4">Blade Store</h3>
           <p class="text-gray-600">Marketplace para produtos digitais, com segurança e praticidade.</p>
         </div>
         <div>
@@ -280,7 +290,7 @@
         </div>
       </div>
       <div class="mt-8 text-center text-gray-600">
-        © 2025 WHMCS Store. Todos os direitos reservados.
+        © 2025 Blade Store. Todos os direitos reservados.
       </div>
     </div>
   </footer>
