@@ -4,7 +4,6 @@ const productsPerPage = 8;
 let isLoading = false;
 
 document.addEventListener('DOMContentLoaded', () => {
-  initCarousel();
   checkAuthStatus();
   loadCategories();
   loadProducts();
@@ -64,35 +63,6 @@ function debounce(func, wait) {
     clearTimeout(timeout);
     timeout = setTimeout(later, wait);
   };
-}
-
-function initCarousel() {
-  const items = document.querySelectorAll('.carousel-item');
-  const dots = document.querySelectorAll('.carousel-dot');
-  let currentIndex = 0;
-
-  function showSlide(index) {
-    items.forEach((item, i) => {
-      item.classList.toggle('hidden', i !== index);
-      dots[i].classList.toggle('bg-blue-600', i === index);
-      dots[i].classList.toggle('bg-gray-400', i !== index);
-    });
-    gsap.fromTo(items[index], { opacity: 0, x: 50 }, { opacity: 1, x: 0, duration: 1 });
-  }
-
-  dots.forEach((dot, i) => {
-    dot.addEventListener('click', () => {
-      currentIndex = i;
-      showSlide(currentIndex);
-    });
-  });
-
-  setInterval(() => {
-    currentIndex = (currentIndex + 1) % items.length;
-    showSlide(currentIndex);
-  }, 5000);
-
-  showSlide(currentIndex);
 }
 
 async function checkAuthStatus() {
@@ -233,7 +203,7 @@ async function loadCategories() {
       const categoryCard = document.createElement('div');
       categoryCard.className = 'bg-white rounded-lg shadow-md overflow-hidden transition-transform transform hover:scale-105';
       categoryCard.innerHTML = `
-        <img src="https://images.unsplash.com/photo-1516321310764-8a2388150c2b" alt="${category.name}" class="w-full h-32 object-cover">
+        <img src="https://placehold.co/300x200" alt="${category.name}" class="w-full h-32 object-cover">
         <div class="p-4">
           <h3 class="text-lg font-semibold text-gray-900">${category.name}</h3>
           <a href="#category-${category.id}" class="text-blue-600 hover:underline"><i class="fas fa-arrow-right mr-1"></i> Explorar</a>
@@ -243,7 +213,7 @@ async function loadCategories() {
       gsap.from(categoryCard, { opacity: 0, y: 50, duration: 0.8, delay: index * 0.1 });
     });
   } catch (error) {
-    console浪error('Erro ao carregar categorias:', error);
+    console.error('Erro ao carregar categorias:', error);
   }
 }
 
@@ -269,7 +239,7 @@ async function loadProducts() {
       const productCard = document.createElement('div');
       productCard.className = 'bg-white rounded-lg shadow-md overflow-hidden transition-transform transform hover:scale-105';
       productCard.innerHTML = `
-        <img src="${product.image_url || 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e'}" alt="${product.name}" class="w-full h-48 object-cover">
+        <img src="${product.image_url || 'https://placehold.co/300x200'}" alt="${product.name}" class="w-full h-48 object-cover">
         <div class="p-4">
           <h3 class="text-lg font-semibold text-gray-900">${product.name}</h3>
           <p class="text-gray-600 mt-1">${product.description ? product.description.substring(0, 50) + '...' : ''}</p>
