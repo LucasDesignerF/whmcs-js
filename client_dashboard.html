@@ -392,6 +392,26 @@
     // Configuração da Base URL da API
     const API_BASE_URL = 'https://redebots-v2.discloud.app';
 
+    // Estado do usuário
+    let currentUser = null;
+
+    // Função para obter o token da URL ou localStorage
+    function getToken() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const token = urlParams.get('token');
+      if (token) {
+        localStorage.setItem('authToken', token);
+        window.history.replaceState({}, document.title, window.location.pathname);
+      }
+      return localStorage.getItem('authToken');
+    }
+
+    // Função para remover o token
+    function removeToken() {
+      localStorage.removeItem('authToken');
+      localStorage.removeItem('user');
+    }
+
     // GSAP Animations
     document.addEventListener('DOMContentLoaded', () => {
       // Hero Section Animation
@@ -439,7 +459,7 @@
         const authLink = document.getElementById('auth-link');
         const mobileAuthLink = document.getElementById('mobile-auth-link');
 
-        if (user && user.role === 'user') {
+        if (user && user.role === 'client') {
           // Desktop Navbar
           authLink.innerHTML = `
             <div class="user-profile">
@@ -459,24 +479,12 @@
             </div>
           `;
           // Logout
-          authLink.querySelector('.logout-btn').addEventListener('click', async () => {
-            try {
-              await fetch(`${API_BASE_URL}/auth/logout`, { credentials: 'include' });
-              localStorage.removeItem('user');
-              window.location.href = `${API_BASE_URL}/auth/discord`;
-            } catch (error) {
-              alert('Erro ao fazer logout');
-            }
-          });
-          mobileAuthLink.querySelector('.logout-btn').addEventListener('click', async () => {
-            try {
-              await fetch(`${API_BASE_URL}/auth/logout`, { credentials: 'include' });
-              localStorage.removeItem('user');
-              window.location.href = `${API_BASE_URL}/auth/discord`;
-            } catch (error) {
-              alert('Erro ao fazer logout');
-            }
-          });
+          const logout = () => {
+            removeToken();
+            window.location.href = '/index.html';
+          };
+          authLink.querySelector('.logout-btn').addEventListener('click', logout);
+          mobileAuthLink.querySelector('.logout-btn').addEventListener('click', logout);
         } else {
           // Redireciona para login
           authLink.innerHTML = `<a href="${API_BASE_URL}/auth/discord" class="flex items-center"><i class="fas fa-user mr-1"></i> Login</a>`;
@@ -486,14 +494,23 @@
       };
 
       // Verifica autenticação
-      let currentUser = null;
       const checkAuth = async () => {
+        const token = getToken();
+        if (!token) {
+          updateAuthUI(null);
+          return;
+        }
+
         try {
-          const response = await fetch(`${API_BASE_URL}/auth/me`, { credentials: 'include' });
+          const response = await fetch(`${API_BASE_URL}/auth/me`, {
+            headers: {
+              Authorization: `Bearer ${token}`
+            }
+          });
           if (response.ok) {
             const data = await response.json();
-            if (data.user.role !== 'user') {
-              window.location.href = `${API_BASE_URL}/auth/discord`;
+            if (data.user.role !== 'client') {
+              window.location.href = data.user.role === 'admin' ? '/admin_dashboard.html' : `${API_BASE_URL}/auth/discord`;
             } else {
               currentUser = data.user;
               localStorage.setItem('user', JSON.stringify(data.user));
@@ -501,9 +518,12 @@
               loadResources();
             }
           } else {
+            removeToken();
             updateAuthUI(null);
           }
         } catch (error) {
+          console.error('Erro ao verificar autenticação:', error);
+          removeToken();
           updateAuthUI(null);
         }
       };
@@ -514,14 +534,23 @@
         for (const section of sections) {
           try {
             const endpoint = section === 'payments' ? '/api/payments/pix' : `/api/${section}`;
+            const token = getToken();
             const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-              headers: { 'x-api-key': localStorage.getItem('apiKey') || '' },
-              credentials: 'include'
+              headers: {
+                Authorization: `Bearer ${token}`,
+                'x-api-key': localStorage.getItem('apiKey') || ''
+              }
             });
             const data = await response.json();
-            renderResources(section, data);
+            if (data.data) {
+              renderResources(section, data.data);
+            } else {
+              console.warn(`Nenhum dado retornado para ${section}`);
+              renderResources(section, []);
+            }
           } catch (error) {
             console.error(`Erro ao carregar ${section}:`, error);
+            renderResources(section, []);
           }
         }
       };
@@ -529,7 +558,7 @@
       // Função para renderizar recursos
       const renderResources = (type, items) => {
         const grid = document.getElementById(`${type}-grid`);
-        grid.innerHTML = '';
+        grid.innerHTML = items.length === 0 ? '<p class="text-gray-600">Nenhum item encontrado.</p>' : '';
         items.forEach(item => {
           const card = document.createElement('div');
           card.className = 'resource-card bg-white p-4 rounded-lg';
@@ -553,10 +582,8 @@
               <p class="text-gray-600">Status: ${item.status}</p>
               <p class="text-gray-600">Valor: R$${item.amount.toFixed(2)}</p>
               <p class="text-gray-600">Fatura: #${item.invoiceId}</p>
-              <div class="qr-code">
-                <img src="${item.qrCode}" alt="QR Code PIX">
-              </div>
-              <p class="text-gray-600">Payload: ${item.payload.slice(0, 50)}...</p>
+              ${item.qrCode ? `<div class="qr-code"><img src="${item.qrCode}" alt="QR Code PIX"></div>` : ''}
+              <p class="text-gray-600">Payload: ${item.payload?.slice(0, 50) || 'N/A'}...</p>
             `;
           }
           grid.appendChild(card);
@@ -619,15 +646,25 @@
         document.getElementById('submit-resource').onclick = async () => {
           const formData = new FormData(form);
           const data = Object.fromEntries(formData);
+          // Parse JSON para itens de pedidos
+          if (type === 'orders' && data.items) {
+            try {
+              data.items = JSON.parse(data.items);
+            } catch (error) {
+              alert('Erro: Itens devem estar em formato JSON válido.');
+              return;
+            }
+          }
           try {
             const endpoint = type === 'payments' ? '/api/payments/pix' : `/api/${type}`;
+            const token = getToken();
             const response = await fetch(`${API_BASE_URL}${endpoint}`, {
               method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
+                Authorization: `Bearer ${token}`,
                 'x-api-key': localStorage.getItem('apiKey') || ''
               },
-              credentials: 'include',
               body: JSON.stringify(data)
             });
             if (response.ok) {
@@ -638,7 +675,8 @@
               alert(`Erro: ${errorData.error || 'Não foi possível criar o recurso'}`);
             }
           } catch (error) {
-            alert('Erro ao criar recurso');
+            console.error('Erro ao criar recurso:', error);
+            alert('Erro ao criar recurso.');
           }
         };
       };

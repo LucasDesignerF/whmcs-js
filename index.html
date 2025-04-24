@@ -513,6 +513,21 @@
     let currentPage = 1;
     let hasMoreProducts = true;
 
+    // Função para obter o token do localStorage
+    function getToken() {
+      return localStorage.getItem('authToken');
+    }
+
+    // Função para definir o token
+    function setToken(token) {
+      localStorage.setItem('authToken', token);
+    }
+
+    // Função para remover o token
+    function removeToken() {
+      localStorage.removeItem('authToken');
+    }
+
     // GSAP Animations
     document.addEventListener('DOMContentLoaded', () => {
       // Hero Section Animation
@@ -596,24 +611,14 @@
             mobileAddProduct.classList.remove('hidden');
           }
           // Logout
-          authLink.querySelector('.logout-btn').addEventListener('click', async () => {
-            try {
-              await fetch(`${API_BASE_URL}/auth/logout`, { credentials: 'include' });
-              localStorage.removeItem('user');
-              window.location.reload();
-            } catch (error) {
-              alert('Erro ao fazer logout');
-            }
-          });
-          mobileAuthLink.querySelector('.logout-btn').addEventListener('click', async () => {
-            try {
-              await fetch(`${API_BASE_URL}/auth/logout`, { credentials: 'include' });
-              localStorage.removeItem('user');
-              window.location.reload();
-            } catch (error) {
-              alert('Erro ao fazer logout');
-            }
-          });
+          const logout = () => {
+            removeToken();
+            localStorage.removeItem('user');
+            currentUser = null;
+            window.location.reload();
+          };
+          authLink.querySelector('.logout-btn').addEventListener('click', logout);
+          mobileAuthLink.querySelector('.logout-btn').addEventListener('click', logout);
         } else {
           // Resetar para estado de login
           authLink.innerHTML = `<a href="${API_BASE_URL}/auth/discord" class="flex items-center"><i class="fas fa-user mr-1"></i> Login</a>`;
@@ -625,19 +630,34 @@
 
       // Verificar autenticação
       const checkAuth = async () => {
+        const token = getToken();
+        if (!token) {
+          currentUser = null;
+          localStorage.removeItem('user');
+          updateAuthUI(null);
+          return;
+        }
+
         try {
-          const response = await fetch(`${API_BASE_URL}/auth/me`, { credentials: 'include' });
+          const response = await fetch(`${API_BASE_URL}/auth/me`, {
+            headers: {
+              Authorization: `Bearer ${token}`
+            }
+          });
           if (response.ok) {
             const data = await response.json();
             currentUser = data.user;
             localStorage.setItem('user', JSON.stringify(data.user));
             updateAuthUI(data.user);
           } else {
+            removeToken();
             currentUser = null;
             localStorage.removeItem('user');
             updateAuthUI(null);
           }
         } catch (error) {
+          console.error('Erro ao verificar autenticação:', error);
+          removeToken();
           currentUser = null;
           localStorage.removeItem('user');
           updateAuthUI(null);
@@ -647,7 +667,9 @@
       // Carregar categorias
       const loadCategories = async () => {
         try {
-          const response = await fetch(`${API_BASE_URL}/api/categories`);
+          const token = getToken();
+          const headers = token ? { Authorization: `Bearer ${token}` } : {};
+          const response = await fetch(`${API_BASE_URL}/api/categories`, { headers });
           const data = await response.json();
           const categories = data.data;
           const dropdown = document.getElementById('categories-dropdown');
@@ -706,7 +728,9 @@
             const [field, order] = sort.split('-');
             url += `&sort=${field}&order=${order}`;
           }
-          const response = await fetch(url);
+          const token = getToken();
+          const headers = token ? { Authorization: `Bearer ${token}` } : {};
+          const response = await fetch(url, { headers });
           const data = await response.json();
           const products = data.data;
           hasMoreProducts = data.pagination.pages > currentPage;
@@ -812,13 +836,14 @@
         }
 
         try {
+          const token = getToken();
           const response = await fetch(`${API_BASE_URL}/api/orders`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`,
               'x-api-key': localStorage.getItem('apiKey') || ''
             },
-            credentials: 'include',
             body: JSON.stringify({
               customerId: currentUser.id,
               items: cart.map(item => ({ productId: item.id, quantity: item.quantity })),

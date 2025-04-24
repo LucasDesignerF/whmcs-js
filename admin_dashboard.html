@@ -440,6 +440,26 @@
     // Configuração da Base URL da API
     const API_BASE_URL = 'https://redebots-v2.discloud.app';
 
+    // Estado do usuário
+    let currentUser = null;
+
+    // Função para obter o token da URL ou localStorage
+    function getToken() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const token = urlParams.get('token');
+      if (token) {
+        localStorage.setItem('authToken', token);
+        window.history.replaceState({}, document.title, window.location.pathname);
+      }
+      return localStorage.getItem('authToken');
+    }
+
+    // Função para remover o token
+    function removeToken() {
+      localStorage.removeItem('authToken');
+      localStorage.removeItem('user');
+    }
+
     // GSAP Animations
     document.addEventListener('DOMContentLoaded', () => {
       // Hero Section Animation
@@ -507,24 +527,12 @@
             </div>
           `;
           // Logout
-          authLink.querySelector('.logout-btn').addEventListener('click', async () => {
-            try {
-              await fetch(`${API_BASE_URL}/auth/logout`, { credentials: 'include' });
-              localStorage.removeItem('user');
-              window.location.href = `${API_BASE_URL}/auth/discord`;
-            } catch (error) {
-              alert('Erro ao fazer logout');
-            }
-          });
-          mobileAuthLink.querySelector('.logout-btn').addEventListener('click', async () => {
-            try {
-              await fetch(`${API_BASE_URL}/auth/logout`, { credentials: 'include' });
-              localStorage.removeItem('user');
-              window.location.href = `${API_BASE_URL}/auth/discord`;
-            } catch (error) {
-              alert('Erro ao fazer logout');
-            }
-          });
+          const logout = () => {
+            removeToken();
+            window.location.href = '/index.html';
+          };
+          authLink.querySelector('.logout-btn').addEventListener('click', logout);
+          mobileAuthLink.querySelector('.logout-btn').addEventListener('click', logout);
         } else {
           // Redireciona para login
           authLink.innerHTML = `<a href="${API_BASE_URL}/auth/discord" class="flex items-center"><i class="fas fa-user mr-1"></i> Login</a>`;
@@ -535,17 +543,35 @@
 
       // Verifica autenticação
       const checkAuth = async () => {
+        const token = getToken();
+        if (!token) {
+          updateAuthUI(null);
+          return;
+        }
+
         try {
-          const response = await fetch(`${API_BASE_URL}/auth/me`, { credentials: 'include' });
+          const response = await fetch(`${API_BASE_URL}/auth/me`, {
+            headers: {
+              Authorization: `Bearer ${token}`
+            }
+          });
           if (response.ok) {
             const data = await response.json();
-            localStorage.setItem('user', JSON.stringify(data.user));
-            updateAuthUI(data.user);
-            loadResources();
+            if (data.user.role !== 'admin') {
+              window.location.href = data.user.role === 'client' ? '/client_dashboard.html' : `${API_BASE_URL}/auth/discord`;
+            } else {
+              currentUser = data.user;
+              localStorage.setItem('user', JSON.stringify(data.user));
+              updateAuthUI(data.user);
+              loadResources();
+            }
           } else {
+            removeToken();
             updateAuthUI(null);
           }
         } catch (error) {
+          console.error('Erro ao verificar autenticação:', error);
+          removeToken();
           updateAuthUI(null);
         }
       };
@@ -555,14 +581,19 @@
         const sections = ['categories', 'products', 'customers', 'orders', 'invoices', 'payments'];
         for (const section of sections) {
           try {
-            const response = await fetch(`${API_BASE_URL}/api/${section}`, {
-              headers: { 'x-api-key': localStorage.getItem('apiKey') || '' },
-              credentials: 'include'
+            const endpoint = section === 'payments' ? '/api/payments/pix' : `/api/${section}`;
+            const token = getToken();
+            const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+              headers: {
+                Authorization: `Bearer ${token}`,
+                'x-api-key': localStorage.getItem('apiKey') || ''
+              }
             });
             const data = await response.json();
-            renderResources(section, section === 'invoices' || section === 'payments' ? data : data.data);
+            renderResources(section, data.data || data || []);
           } catch (error) {
             console.error(`Erro ao carregar ${section}:`, error);
+            renderResources(section, []);
           }
         }
       };
@@ -570,18 +601,77 @@
       // Função para renderizar recursos
       const renderResources = (type, items) => {
         const grid = document.getElementById(`${type}-grid`);
-        grid.innerHTML = '';
+        grid.innerHTML = items.length === 0 ? '<p class="text-gray-600">Nenhum item encontrado.</p>' : '';
         items.forEach(item => {
           const card = document.createElement('div');
           card.className = 'resource-card bg-white p-4 rounded-lg';
-          card.innerHTML = `
-            <h3 class="text-lg font-semibold">${item.name || item.id}</h3>
-            <p class="text-gray-600">${JSON.stringify(item).slice(0, 100)}...</p>
-            <div class="mt-4 flex space-x-2">
-              <button class="edit-btn btn bg-yellow-600 text-white hover:bg-yellow-700" data-type="${type}" data-id="${item.id}"><i class="fas fa-edit mr-1"></i> Editar</button>
-              <button class="delete-btn btn bg-red-600 text-white hover:bg-red-700" data-type="${type}" data-id="${item.id}"><i class="fas fa-trash mr-1"></i> Excluir</button>
-            </div>
-          `;
+          if (type === 'categories') {
+            card.innerHTML = `
+              <h3 class="text-lg font-semibold">${item.name}</h3>
+              <p class="text-gray-600">Descrição: ${item.description || 'N/A'}</p>
+              <div class="mt-4 flex space-x-2">
+                <button class="edit-btn btn bg-yellow-600 text-white hover:bg-yellow-700" data-type="${type}" data-id="${item.id}"><i class="fas fa-edit mr-1"></i> Editar</button>
+                <button class="delete-btn btn bg-red-600 text-white hover:bg-red-700" data-type="${type}" data-id="${item.id}"><i class="fas fa-trash mr-1"></i> Excluir</button>
+              </div>
+            `;
+          } else if (type === 'products') {
+            card.innerHTML = `
+              <h3 class="text-lg font-semibold">${item.name}</h3>
+              <p class="text-gray-600">Preço: R$${item.price.toFixed(2)}</p>
+              <p class="text-gray-600">Categoria ID: ${item.categoryId}</p>
+              <p class="text-gray-600">Estoque: ${item.stock}</p>
+              <div class="mt-4 flex space-x-2">
+                <button class="edit-btn btn bg-yellow-600 text-white hover:bg-yellow-700" data-type="${type}" data-id="${item.id}"><i class="fas fa-edit mr-1"></i> Editar</button>
+                <button class="delete-btn btn bg-red-600 text-white hover:bg-red-700" data-type="${type}" data-id="${item.id}"><i class="fas fa-trash mr-1"></i> Excluir</button>
+              </div>
+            `;
+          } else if (type === 'customers') {
+            card.innerHTML = `
+              <h3 class="text-lg font-semibold">${item.name}</h3>
+              <p class="text-gray-600">Email: ${item.email}</p>
+              <p class="text-gray-600">Telefone: ${item.phone || 'N/A'}</p>
+              <div class="mt-4 flex space-x-2">
+                <button class="edit-btn btn bg-yellow-600 text-white hover:bg-yellow-700" data-type="${type}" data-id="${item.id}"><i class="fas fa-edit mr-1"></i> Editar</button>
+                <button class="delete-btn btn bg-red-600 text-white hover:bg-red-700" data-type="${type}" data-id="${item.id}"><i class="fas fa-trash mr-1"></i> Excluir</button>
+              </div>
+            `;
+          } else if (type === 'orders') {
+            card.innerHTML = `
+              <h3 class="text-lg font-semibold">Pedido #${item.id}</h3>
+              <p class="text-gray-600">Cliente ID: ${item.customerId}</p>
+              <p class="text-gray-600">Status: ${item.status}</p>
+              <p class="text-gray-600">Total: R$${item.total.toFixed(2)}</p>
+              <p class="text-gray-600">Itens: ${JSON.stringify(item.items).slice(0, 50)}...</p>
+              <div class="mt-4 flex space-x-2">
+                <button class="edit-btn btn bg-yellow-600 text-white hover:bg-yellow-700" data-type="${type}" data-id="${item.id}"><i class="fas fa-edit mr-1"></i> Editar</button>
+                <button class="delete-btn btn bg-red-600 text-white hover:bg-red-700" data-type="${type}" data-id="${item.id}"><i class="fas fa-trash mr-1"></i> Excluir</button>
+              </div>
+            `;
+          } else if (type === 'invoices') {
+            card.innerHTML = `
+              <h3 class="text-lg font-semibold">Fatura #${item.id}</h3>
+              <p class="text-gray-600">Status: ${item.status}</p>
+              <p class="text-gray-600">Total: R$${item.total.toFixed(2)}</p>
+              <p class="text-gray-600">Criada em: ${new Date(item.createdAt).toLocaleDateString()}</p>
+              <div class="mt-4 flex space-x-2">
+                <button class="edit-btn btn bg-yellow-600 text-white hover:bg-yellow-700" data-type="${type}" data-id="${item.id}"><i class="fas fa-edit mr-1"></i> Editar</button>
+                <button class="delete-btn btn bg-red-600 text-white hover:bg-red-700" data-type="${type}" data-id="${item.id}"><i class="fas fa-trash mr-1"></i> Excluir</button>
+              </div>
+            `;
+          } else if (type === 'payments') {
+            card.innerHTML = `
+              <h3 class="text-lg font-semibold">Pagamento #${item.id}</h3>
+              <p class="text-gray-600">Status: ${item.status}</p>
+              <p class="text-gray-600">Valor: R$${item.amount.toFixed(2)}</p>
+              <p class="text-gray-600">Fatura: #${item.invoiceId}</p>
+              ${item.qrCode ? `<div class="qr-code"><img src="${item.qrCode}" alt="QR Code PIX" style="max-width: 200px;"></div>` : ''}
+              <p class="text-gray-600">Payload: ${item.payload?.slice(0, 50) || 'N/A'}...</p>
+              <div class="mt-4 flex space-x-2">
+                <button class="edit-btn btn bg-yellow-600 text-white hover:bg-yellow-700" data-type="${type}" data-id="${item.id}"><i class="fas fa-edit mr-1"></i> Editar</button>
+                <button class="delete-btn btn bg-red-600 text-white hover:bg-red-700" data-type="${type}" data-id="${item.id}"><i class="fas fa-trash mr-1"></i> Excluir</button>
+              </div>
+            `;
+          }
           grid.appendChild(card);
         });
 
@@ -619,11 +709,16 @@
           ],
           orders: [
             { name: 'customerId', label: 'ID do Cliente', type: 'number', required: true },
-            { name: 'items', label: 'Itens (JSON)', type: 'textarea', required: true },
+            { name: 'items', label: 'Itens (JSON: [{productId, quantity}])', type: 'textarea', required: true },
             { name: 'status', label: 'Status', type: 'select', options: ['pending', 'completed', 'canceled'], required: true }
           ],
           invoices: [
             { name: 'orderId', label: 'ID do Pedido', type: 'number', required: true }
+          ],
+          payments: [
+            { name: 'invoiceId', label: 'ID da Fatura', type: 'number', required: true },
+            { name: 'amount', label: 'Valor (R$)', type: 'number', required: true },
+            { name: 'status', label: 'Status', type: 'select', options: ['pending', 'completed', 'failed'], required: true }
           ]
         };
 
@@ -651,16 +746,23 @@
 
         if (id) {
           try {
+            const token = getToken();
             const response = await fetch(`${API_BASE_URL}/api/${type}/${id}`, {
-              headers: { 'x-api-key': localStorage.getItem('apiKey') || '' },
-              credentials: 'include'
+              headers: {
+                Authorization: `Bearer ${token}`,
+                'x-api-key': localStorage.getItem('apiKey') || ''
+              }
             });
             const data = await response.json();
-            Object.keys(data).forEach(key => {
+            const resource = data.data || data;
+            Object.keys(resource).forEach(key => {
               const input = form.querySelector(`[name="${key}"]`);
-              if (input) input.value = data[key];
+              if (input) {
+                input.value = key === 'items' ? JSON.stringify(resource[key]) : resource[key];
+              }
             });
           } catch (error) {
+            console.error('Erro ao carregar dados do recurso:', error);
             alert('Erro ao carregar dados do recurso');
           }
         }
@@ -668,25 +770,37 @@
         document.getElementById('submit-resource').onclick = async () => {
           const formData = new FormData(form);
           const data = Object.fromEntries(formData);
+          // Parse JSON para itens de pedidos
+          if (type === 'orders' && data.items) {
+            try {
+              data.items = JSON.parse(data.items);
+            } catch (error) {
+              alert('Erro: Itens devem estar em formato JSON válido.');
+              return;
+            }
+          }
           try {
             const method = id ? 'PUT' : 'POST';
             const url = id ? `${API_BASE_URL}/api/${type}/${id}` : `${API_BASE_URL}/api/${type}`;
+            const token = getToken();
             const response = await fetch(url, {
               method,
               headers: {
                 'Content-Type': 'application/json',
+                Authorization: `Bearer ${token}`,
                 'x-api-key': localStorage.getItem('apiKey') || ''
               },
-              credentials: 'include',
               body: JSON.stringify(data)
             });
             if (response.ok) {
               modal.classList.add('hidden');
               loadResources();
             } else {
-              alert('Erro ao salvar recurso');
+              const errorData = await response.json();
+              alert(`Erro: ${errorData.error || 'Não foi possível salvar o recurso'}`);
             }
           } catch (error) {
+            console.error('Erro ao salvar recurso:', error);
             alert('Erro ao salvar recurso');
           }
         };
@@ -700,18 +814,23 @@
 
         document.getElementById('confirm-delete').onclick = async () => {
           try {
+            const token = getToken();
             const response = await fetch(`${API_BASE_URL}/api/${type}/${id}`, {
               method: 'DELETE',
-              headers: { 'x-api-key': localStorage.getItem('apiKey') || '' },
-              credentials: 'include'
+              headers: {
+                Authorization: `Bearer ${token}`,
+                'x-api-key': localStorage.getItem('apiKey') || ''
+              }
             });
             if (response.ok) {
               modal.classList.add('hidden');
               loadResources();
             } else {
-              alert('Erro ao excluir recurso');
+              const errorData = await response.json();
+              alert(`Erro: ${errorData.error || 'Não foi possível excluir o recurso'}`);
             }
           } catch (error) {
+            console.error('Erro ao excluir recurso:', error);
             alert('Erro ao excluir recurso');
           }
         };
